@@ -6,7 +6,7 @@ enum Command {
         launchPath: String,
         currentDirectoryPath: String? = nil,
         arguments: [String]
-    ) throws -> String {
+    ) throws -> String? {
         let process = Process()
         process.launchPath = launchPath
         if let currentDirectoryPath {
@@ -17,14 +17,11 @@ enum Command {
         process.standardOutput = pipe
         try process.run()
 
-        guard let data = try pipe.fileHandleForReading.readToEnd() else {
-            throw CommandError.cannotReadData
+        let data = try? pipe.fileHandleForReading.readToEnd()
+        
+        if let data {
+            return String(data: data, encoding: .utf8)
         }
-
-        return String(data: data, encoding: .utf8) ?? ""
+        return nil
     }
-}
-
-enum CommandError: Error {
-    case cannotReadData
 }

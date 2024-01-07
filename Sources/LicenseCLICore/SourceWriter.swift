@@ -1,5 +1,4 @@
 import Foundation
-import LicenseCLICore
 import SwiftSyntax
 import SwiftSyntaxBuilder
 

@@ -8,7 +8,7 @@ brew install ryu0118/tap/licensecli
 ```
 ### Mint
 ```
-Ryu0118/LicenseCLI@0.0.1
+Ryu0118/LicenseCLI@0.1.0
 ```
 
 # Usage

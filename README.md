@@ -2,6 +2,10 @@
 CLI tool for collecting library licenses
 
 # Installation
+### Homebrew
+```
+brew install ryu0118/tap/licensecli
+```
 ### Mint
 ```
 Ryu0118/LicenseCLI@0.0.1

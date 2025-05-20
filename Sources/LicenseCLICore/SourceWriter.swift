@@ -25,10 +25,12 @@ enum SourceWriter {
         public enum Licenses {
             public struct License: Equatable, Hashable, Identifiable {
                 public let id: String
+                public let name: String
                 public let license: String
 
-                public init(id: String, license: String) {
+                public init(id: String, name: String, license: String) {
                     self.id = id
+                    self.name = name
                     self.license = license
                 }
             }
@@ -42,6 +44,7 @@ enum SourceWriter {
                 """
                 Licenses.License(
                 id: \"\($0.identity)\",
+                name: \"\($0.name)\",
                 license: \"\"\"
                         \($0.license)
                 \"\"\"

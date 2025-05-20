@@ -9,31 +9,32 @@ final class IntegrationTests{
     let outputFileURL: URL
     let tcaFixtureURL: URL
     let nioFixtureURL: URL
+    let cowBoxFixtureURL: URL
     let printLicensesURL: URL
     let binaryOutputURL: URL
     let fileManager: FileManager
 
     let outputFileName = "Licenses"
 
-    let nioAndTcaDependencies: Set<String> = [
-        "swift-atomics",
-        "swift-collections",
-        "swift-nio",
-        "swift-system",
+    let allFixtureDependencies: Set<String> = [
         "combine-schedulers",
-        "swift-case-paths",
-        "swift-clocks",
-        "swift-collections",
-        "swift-composable-architecture",
-        "swift-concurrency-extras",
         "swift-custom-dump",
-        "swift-dependencies",
-        "swift-identified-collections",
         "swift-navigation",
+        "swift-concurrency-extras",
+        "swift-dependencies",
+        "swift-nio",
+        "swift-composable-architecture",
         "swift-perception",
-        "swift-sharing",
+        "swift-collections",
         "swift-syntax",
-        "xctest-dynamic-overlay"
+        "swift-clocks",
+        "swift-identified-collections",
+        "CoWBox",
+        "swift-system",
+        "swift-case-paths",
+        "xctest-dynamic-overlay",
+        "swift-atomics",
+        "swift-sharing"
     ]
 
     init() throws {
@@ -43,6 +44,7 @@ final class IntegrationTests{
         fileManager = FileManager.default
         tcaFixtureURL = fixtureURL.appending(component: "ComposableArchitecture")
         nioFixtureURL = fixtureURL.appending(component: "NIO")
+        cowBoxFixtureURL = fixtureURL.appending(component: "HasCoWBox")
         printLicensesURL = fixtureURL.appending(component: "PrintLicenses").appendingPathExtension("swift")
         binaryOutputURL = outputDirURL.appending(component: "main")
 
@@ -53,6 +55,7 @@ final class IntegrationTests{
         try? fileManager.removeItem(at: outputDirURL)
         try? fileManager.removeItem(at: tcaFixtureURL.appending(component: "Package.resolved"))
         try? fileManager.removeItem(at: nioFixtureURL.appending(component: "Package.resolved"))
+        try? fileManager.removeItem(at: cowBoxFixtureURL.appending(component: "Package.resolved"))
     }
 
     @Test
@@ -61,6 +64,7 @@ final class IntegrationTests{
             packageDirectoryPaths: [
                 tcaFixtureURL.path(percentEncoded: false),
                 nioFixtureURL.path(percentEncoded: false),
+                cowBoxFixtureURL.path(percentEncoded: false),
             ],
             outputDirectoryPath: outputDirURL.path(percentEncoded: false),
             fileName: outputFileName
@@ -69,6 +73,7 @@ final class IntegrationTests{
             packageDirectoryPaths: [
                 tcaFixtureURL.path(percentEncoded: false),
                 nioFixtureURL.path(percentEncoded: false),
+                cowBoxFixtureURL.path(percentEncoded: false),
             ],
             outputDirectoryPath: outputDirURL.path(percentEncoded: false),
             fileName: outputFileName
@@ -91,15 +96,15 @@ final class IntegrationTests{
             )
         }
 
-        let idsData: Data = try #require(
+        let namesData: Data = try #require(
             try Command.run(
                 launchPath: binaryOutputURL.path(percentEncoded: false),
                 arguments: []
             )
         )
-        let ids = try JSONDecoder().decode(Set<String>.self, from: idsData)
+        let names = try JSONDecoder().decode(Set<String>.self, from: namesData)
 
-        #expect(ids == nioAndTcaDependencies)
+        #expect(names == allFixtureDependencies)
     }
 }
 

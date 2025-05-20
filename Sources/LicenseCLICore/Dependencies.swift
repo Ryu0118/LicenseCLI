@@ -23,6 +23,10 @@ struct Dependencies: Decodable, Equatable {
                 .appendingPathComponent(state.revision)
                 .appendingPathComponent("LICENSE.txt")
         }
+
+        var name: String {
+            URL(string: location.rawGithubContentURL())?.lastPathComponent ?? identity
+        }
     }
 }
 

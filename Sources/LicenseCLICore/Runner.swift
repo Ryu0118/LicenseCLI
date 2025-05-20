@@ -14,12 +14,22 @@ public struct Runner {
     }
 
     public func run(
-        packageDirectoryPath: String,
+        packageDirectoryPaths: [String],
         outputDirectoryPath: String,
         fileName: String
     ) async throws {
-        let dependencies = try dependenciesLoader.load(packageDirectoryPath: packageDirectoryPath)
-        let licenses = try await licenseLoader.load(for: dependencies)
+        let licenses = try await withThrowingTaskGroup(of: [License].self, returning: [License].self) { group in
+            for packageDirectoryPath in packageDirectoryPaths {
+                group.addTask {
+                    let dependencies = try dependenciesLoader.load(packageDirectoryPath: packageDirectoryPath)
+                    return try await licenseLoader.load(for: dependencies)
+                }
+            }
+
+            return try await group.reduce(into: [License]()) { partialResult, license in
+                partialResult.append(contentsOf: license)
+            }
+        }
         try SourceWriter.write(
             licenses: licenses,
             outputURL: URL(fileURLWithPath: outputDirectoryPath)

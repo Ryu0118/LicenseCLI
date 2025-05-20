@@ -7,6 +7,24 @@ enum Command {
         currentDirectoryPath: String? = nil,
         arguments: [String]
     ) throws -> String? {
+        let data: Data? = try run(
+            launchPath: launchPath,
+            currentDirectoryPath: currentDirectoryPath,
+            arguments: arguments
+        )
+
+        if let data {
+            return String(data: data, encoding: .utf8)
+        }
+        return nil
+    }
+
+    @_disfavoredOverload
+    static func run(
+        launchPath: String,
+        currentDirectoryPath: String? = nil,
+        arguments: [String]
+    ) throws -> Data? {
         let process = Process()
         process.launchPath = launchPath
         if let currentDirectoryPath {
@@ -17,11 +35,6 @@ enum Command {
         process.standardOutput = pipe
         try process.run()
 
-        let data = try? pipe.fileHandleForReading.readToEnd()
-        
-        if let data {
-            return String(data: data, encoding: .utf8)
-        }
-        return nil
+        return try? pipe.fileHandleForReading.readToEnd()
     }
 }

@@ -13,14 +13,15 @@ Ryu0118/LicenseCLI@0.1.0
 
 # Usage
 ```
-USAGE: licensecli <project-directory> <output-directory> [--name <name>]
+USAGE: licensecli <project-directory> ... --output-directory <output-directory> [--name <name>]
 
 ARGUMENTS:
-  <project-directory>     Directory where Package.swift is located
-  <output-directory>      Directory where Swift files are generated
+  <project-directory>     Directories where Package.swift is located
 
 OPTIONS:
-  -n, --name <name>       Name of the generated Swift file
+  -o, --output-directory <output-directory>
+                          Output directory
+  -n, --name <name>       (default: Licenses)
   -h, --help              Show help information.
 ```
 

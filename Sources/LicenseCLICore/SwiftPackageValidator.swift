@@ -8,6 +8,20 @@ public struct SwiftPackageValidator {
     }
 
     public func validate(
+        packageDirectoryPaths: [String],
+        outputDirectoryPath: String,
+        fileName: String
+    ) throws {
+        for packageDirectoryPath in packageDirectoryPaths {
+            try validate(
+                packageDirectoryPath: packageDirectoryPath,
+                outputDirectoryPath: outputDirectoryPath,
+                fileName: fileName
+            )
+        }
+    }
+
+    private func validate(
         packageDirectoryPath: String,
         outputDirectoryPath: String,
         fileName: String

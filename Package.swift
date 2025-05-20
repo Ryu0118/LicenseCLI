@@ -31,6 +31,15 @@ let package = Package(
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax")
             ]
+        ),
+
+        .testTarget(
+            name: "LicenseCLITests",
+            dependencies: [
+                "LicenseCLI",
+                "LicenseCLICore"
+            ],
+            exclude: ["Fixtures/"]
         )
     ]
 )

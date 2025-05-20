@@ -6,10 +6,3 @@ DerivedData/
 .swiftpm/configuration/registries.json
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
-
-Licenses.swift
-releases/
-
-Tests/**/Package.resolved
-Tests/**/.swiftpm
-Tests/**/.build

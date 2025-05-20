@@ -48,7 +48,7 @@ struct LicenseLoader {
                 .sorted {
                     (dependencies.pins.firstIndex(of: $0.0) ?? 0) < (dependencies.pins.firstIndex(of: $1.0) ?? 0)
                 }
-                .map { License(identity: $0.0.identity, license: $0.1) }
+                .map { License(identity: $0.0.identity, name: $0.0.name, license: $0.1) }
         }
     }
 }

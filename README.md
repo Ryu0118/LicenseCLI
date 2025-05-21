@@ -2,13 +2,15 @@
 CLI tool for collecting library licenses
 
 # Installation
-### Homebrew
-```
-brew install ryu0118/tap/licensecli
+### nest
+The easiest way to install LicenseCLI is to use [nest](https://github.com/mtj0928/nest). 
+`nest install Ryu0118/LicenseCLI`
+
+```yaml
 ```
 ### Mint
 ```
-Ryu0118/LicenseCLI@0.1.0
+Ryu0118/LicenseCLI@0.2.1
 ```
 
 # Usage
@@ -38,7 +40,7 @@ public struct LicenseView: View {
             Text(license.license)
           }
         } label: {
-          Text(license.id)
+          Text(license.name)
         }
       }
     }

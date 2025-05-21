@@ -1,6 +1,6 @@
 import Foundation
 
-public struct License: Equatable {
+public struct License: Hashable {
     public let identity: String
     public let name: String
     public let license: String

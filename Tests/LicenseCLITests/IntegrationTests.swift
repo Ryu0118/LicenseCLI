@@ -7,7 +7,8 @@ import Foundation
 final class IntegrationTests{
     let outputDirURL: URL
     let outputFileURL: URL
-    let tcaFixtureURL: URL
+    let tca1FixtureURL: URL
+    let tca2FixtureURL: URL
     let nioFixtureURL: URL
     let cowBoxFixtureURL: URL
     let printLicensesURL: URL
@@ -16,7 +17,7 @@ final class IntegrationTests{
 
     let outputFileName = "Licenses"
 
-    let allFixtureDependencies: Set<String> = [
+    let allFixtureDependencies: [String] = [
         "combine-schedulers",
         "swift-custom-dump",
         "swift-navigation",
@@ -42,7 +43,8 @@ final class IntegrationTests{
         outputDirURL = fixtureURL.appending(component: "output")
         outputFileURL = outputDirURL.appending(component: outputFileName).appendingPathExtension("swift")
         fileManager = FileManager.default
-        tcaFixtureURL = fixtureURL.appending(component: "ComposableArchitecture")
+        tca1FixtureURL = fixtureURL.appending(component: "ComposableArchitecture1")
+        tca2FixtureURL = fixtureURL.appending(component: "ComposableArchitecture2")
         nioFixtureURL = fixtureURL.appending(component: "NIO")
         cowBoxFixtureURL = fixtureURL.appending(component: "HasCoWBox")
         printLicensesURL = fixtureURL.appending(component: "PrintLicenses").appendingPathExtension("swift")
@@ -53,7 +55,8 @@ final class IntegrationTests{
 
     deinit {
         try? fileManager.removeItem(at: outputDirURL)
-        try? fileManager.removeItem(at: tcaFixtureURL.appending(component: "Package.resolved"))
+        try? fileManager.removeItem(at: tca1FixtureURL.appending(component: "Package.resolved"))
+        try? fileManager.removeItem(at: tca2FixtureURL.appending(component: "Package.resolved"))
         try? fileManager.removeItem(at: nioFixtureURL.appending(component: "Package.resolved"))
         try? fileManager.removeItem(at: cowBoxFixtureURL.appending(component: "Package.resolved"))
     }
@@ -62,7 +65,8 @@ final class IntegrationTests{
     func testMultiplePackageLicenses() async throws {
         try SwiftPackageValidator().validate(
             packageDirectoryPaths: [
-                tcaFixtureURL.path(percentEncoded: false),
+                tca1FixtureURL.path(percentEncoded: false),
+                tca2FixtureURL.path(percentEncoded: false),
                 nioFixtureURL.path(percentEncoded: false),
                 cowBoxFixtureURL.path(percentEncoded: false),
             ],
@@ -71,7 +75,8 @@ final class IntegrationTests{
         )
         try await Runner().run(
             packageDirectoryPaths: [
-                tcaFixtureURL.path(percentEncoded: false),
+                tca1FixtureURL.path(percentEncoded: false),
+                tca2FixtureURL.path(percentEncoded: false),
                 nioFixtureURL.path(percentEncoded: false),
                 cowBoxFixtureURL.path(percentEncoded: false),
             ],
@@ -102,9 +107,10 @@ final class IntegrationTests{
                 arguments: []
             )
         )
-        let names = try JSONDecoder().decode(Set<String>.self, from: namesData)
 
-        #expect(names == allFixtureDependencies)
+        let names = try JSONDecoder().decode([String].self, from: namesData)
+
+        #expect(names.sorted() == allFixtureDependencies.sorted())
     }
 }
 

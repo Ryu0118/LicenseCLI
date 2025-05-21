@@ -18,7 +18,7 @@ public struct Runner {
         outputDirectoryPath: String,
         fileName: String
     ) async throws {
-        let licenses = try await withThrowingTaskGroup(of: [License].self, returning: [License].self) { group in
+        let licenses = try await withThrowingTaskGroup(of: [License].self, returning: Set<License>.self) { group in
             for packageDirectoryPath in packageDirectoryPaths {
                 group.addTask {
                     let dependencies = try dependenciesLoader.load(packageDirectoryPath: packageDirectoryPath)
@@ -26,12 +26,12 @@ public struct Runner {
                 }
             }
 
-            return try await group.reduce(into: [License]()) { partialResult, license in
-                partialResult.append(contentsOf: license)
+            return try await group.reduce(into: Set<License>()) { partialResult, licenses in
+                partialResult.formUnion(licenses)
             }
         }
         try SourceWriter.write(
-            licenses: licenses,
+            licenses: licenses.sorted(by: { $0.name < $1.name }),
             outputURL: URL(fileURLWithPath: outputDirectoryPath)
                 .appendingPathComponent(fileName)
                 .appendingPathExtension("swift")

@@ -6,8 +6,6 @@ CLI tool for collecting library licenses
 The easiest way to install LicenseCLI is to use [nest](https://github.com/mtj0928/nest). 
 `nest install Ryu0118/LicenseCLI`
 
-```yaml
-```
 ### Mint
 ```
 Ryu0118/LicenseCLI@0.2.1

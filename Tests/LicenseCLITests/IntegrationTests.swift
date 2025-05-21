@@ -17,7 +17,7 @@ final class IntegrationTests{
 
     let outputFileName = "Licenses"
 
-    let allFixtureDependencies: Set<String> = [
+    let allFixtureDependencies: [String] = [
         "combine-schedulers",
         "swift-custom-dump",
         "swift-navigation",
@@ -108,9 +108,9 @@ final class IntegrationTests{
             )
         )
 
-        let names = try JSONDecoder().decode(Set<String>.self, from: namesData)
+        let names = try JSONDecoder().decode([String].self, from: namesData)
 
-        #expect(names == allFixtureDependencies)
+        #expect(names.sorted() == allFixtureDependencies.sorted())
     }
 }
 

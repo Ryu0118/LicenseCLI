@@ -4,6 +4,8 @@ import SwiftSyntaxBuilder
 
 enum SourceWriter {
     static func write(licenses: [License], outputURL: URL) throws {
+        logger.trace("Generating Swift code for \(licenses.count) licenses")
+
         let code = CodeBlockItemListSyntax {
             licensesDefinition()
             allLicensesDeclaration(licenses: licenses)
@@ -17,7 +19,11 @@ enum SourceWriter {
         \(code)
         """
 
+        logger.trace("Writing generated code to \(outputURL.path)")
+
         try whole.write(to: outputURL, atomically: true, encoding: .utf8)
+
+        logger.info("💾 Wrote license file to \(outputURL.path)")
     }
 
     private static func licensesDefinition() -> DeclSyntax {

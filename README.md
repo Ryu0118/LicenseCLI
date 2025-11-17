@@ -13,7 +13,7 @@ Ryu0118/LicenseCLI@0.2.1
 
 # Usage
 ```
-USAGE: licensecli <project-directory> ... --output-directory <output-directory> [--name <name>]
+USAGE: licensecli <project-directory> ... --output-directory <output-directory> [--name <name>] [--verbose]
 
 ARGUMENTS:
   <project-directory>     Directories where Package.swift is located
@@ -22,6 +22,7 @@ OPTIONS:
   -o, --output-directory <output-directory>
                           Output directory
   -n, --name <name>       (default: Licenses)
+  --verbose               Enable verbose logging
   -h, --help              Show help information.
 ```
 

@@ -1,6 +1,6 @@
 COMMAND_NAME = licensecli
-BINARY_PATH = ./.build/apple/Products/Release/$(COMMAND_NAME)
-VERSION = 0.1.0
+BINARY_PATH = ./.build/release/$(COMMAND_NAME)
+VERSION = 0.3.0
 
 .PHONY: release
 release:

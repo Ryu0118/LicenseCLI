@@ -12,7 +12,7 @@ struct LicenseCLI: AsyncParsableCommand {
     @Option(name: .shortAndLong)
     var name: String = "Licenses"
 
-    @Flag(name: .shortAndLong, help: "Enable verbose logging")
+    @Flag(name: .long, help: "Enable verbose logging")
     var verbose: Bool = false
 
     static let configuration = CommandConfiguration(commandName: "licensecli")

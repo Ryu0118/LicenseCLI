@@ -12,6 +12,9 @@ struct LicenseCLI: AsyncParsableCommand {
     @Option(name: .shortAndLong)
     var name: String = "Licenses"
 
+    @Flag(name: .long, help: "Enable verbose logging")
+    var verbose: Bool = false
+
     static let configuration = CommandConfiguration(commandName: "licensecli")
 
     mutating func run() async throws {
@@ -23,6 +26,7 @@ struct LicenseCLI: AsyncParsableCommand {
     }
 
     mutating func validate() throws {
+        LicenseCLICore.setupLogging(verbose: verbose)
         try SwiftPackageValidator().validate(
             packageDirectoryPaths: projectDirectory,
             outputDirectoryPath: outputDirectory,

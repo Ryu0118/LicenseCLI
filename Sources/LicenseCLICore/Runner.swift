@@ -18,8 +18,14 @@ public struct Runner {
         outputDirectoryPath: String,
         fileName: String
     ) async throws {
+        logger.info("\(ANSIColor.colored("🚀 Starting license generation", color: .cyan))")
+        logger.trace("Package directories: \(packageDirectoryPaths)")
+        logger.trace("Output directory: \(outputDirectoryPath)")
+        logger.trace("File name: \(fileName)")
+
         let licenses = try await withThrowingTaskGroup(of: [License].self, returning: Set<License>.self) { group in
             for packageDirectoryPath in packageDirectoryPaths {
+                logger.trace("Processing package directory: \(packageDirectoryPath)")
                 group.addTask {
                     let dependencies = try dependenciesLoader.load(packageDirectoryPath: packageDirectoryPath)
                     return try await licenseLoader.load(for: dependencies)
@@ -30,12 +36,21 @@ public struct Runner {
                 partialResult.formUnion(licenses)
             }
         }
+
+        logger.info("📦 Loaded \(licenses.count) unique licenses")
+
+        let outputURL = URL(fileURLWithPath: outputDirectoryPath)
+            .appendingPathComponent(fileName)
+            .appendingPathExtension("swift")
+
+        logger.trace("Writing licenses to: \(outputURL.path)")
+
         try SourceWriter.write(
             licenses: licenses.sorted(by: { $0.name < $1.name }),
-            outputURL: URL(fileURLWithPath: outputDirectoryPath)
-                .appendingPathComponent(fileName)
-                .appendingPathExtension("swift")
+            outputURL: outputURL
         )
+
+        logger.info("\(ANSIColor.colored("✅ Successfully generated license file at \(outputURL.path)", color: .green))")
     }
 }
 

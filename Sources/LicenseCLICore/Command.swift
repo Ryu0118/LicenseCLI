@@ -25,6 +25,12 @@ enum Command {
         currentDirectoryPath: String? = nil,
         arguments: [String]
     ) throws -> Data? {
+        let commandString = ([launchPath] + arguments).joined(separator: " ")
+        logger.trace("Executing command: \(commandString)")
+        if let currentDirectoryPath {
+            logger.trace("Working directory: \(currentDirectoryPath)")
+        }
+
         let process = Process()
         process.launchPath = launchPath
         if let currentDirectoryPath {
@@ -35,6 +41,9 @@ enum Command {
         process.standardOutput = pipe
         try process.run()
 
-        return try? pipe.fileHandleForReading.readToEnd()
+        let result = try? pipe.fileHandleForReading.readToEnd()
+        logger.trace("Command completed successfully")
+
+        return result
     }
 }

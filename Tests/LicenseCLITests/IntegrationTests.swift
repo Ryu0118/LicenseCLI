@@ -35,7 +35,8 @@ final class IntegrationTests{
         "swift-case-paths",
         "xctest-dynamic-overlay",
         "swift-atomics",
-        "swift-sharing"
+        "swift-sharing",
+        "OpenCombine"
     ]
 
     init() throws {

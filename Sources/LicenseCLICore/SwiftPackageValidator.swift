@@ -50,7 +50,7 @@ public struct SwiftPackageValidator {
         if !fileManager.fileExists(atPath: packageResolveURL.path) {
             logger.info("\(ANSIColor.colored("♻️ Resolving package dependencies", color: .yellow))")
             try Command.run(
-                launchPath: "/usr/bin/env",
+                launchPath: "/usr/bin/xcrun",
                 currentDirectoryPath: packageDirectoryPath,
                 arguments: ["swift", "package", "resolve"]
             )

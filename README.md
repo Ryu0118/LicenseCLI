@@ -13,12 +13,14 @@ Ryu0118/LicenseCLI@0.2.1
 
 # Usage
 ```
-USAGE: licensecli <project-directory> ... --output-directory <output-directory> [--name <name>] [--verbose]
+USAGE: licensecli [<project-directory> ...] [--github-repo <github-repo> ...] --output-directory <output-directory> [--name <name>] [--verbose]
 
 ARGUMENTS:
   <project-directory>     Directories where Package.swift is located
 
 OPTIONS:
+  --github-repo <github-repo>
+                          GitHub repository URLs (e.g., https://github.com/owner/repo)
   -o, --output-directory <output-directory>
                           Output directory
   -n, --name <name>       (default: Licenses)

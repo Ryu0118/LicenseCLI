@@ -15,15 +15,17 @@ public struct Runner {
 
     public func run(
         packageDirectoryPaths: [String],
+        githubRepoURLs: [String],
         outputDirectoryPath: String,
         fileName: String
     ) async throws {
         logger.info("\(ANSIColor.colored("🚀 Starting license generation", color: .cyan))")
         logger.trace("Package directories: \(packageDirectoryPaths)")
+        logger.trace("GitHub repository URLs: \(githubRepoURLs)")
         logger.trace("Output directory: \(outputDirectoryPath)")
         logger.trace("File name: \(fileName)")
 
-        let licenses = try await withThrowingTaskGroup(of: [License].self, returning: Set<License>.self) { group in
+        var licenses = try await withThrowingTaskGroup(of: [License].self, returning: Set<License>.self) { group in
             for packageDirectoryPath in packageDirectoryPaths {
                 logger.trace("Processing package directory: \(packageDirectoryPath)")
                 group.addTask {
@@ -36,6 +38,9 @@ public struct Runner {
                 partialResult.formUnion(licenses)
             }
         }
+
+        let githubLicenses = try await licenseLoader.load(for: githubRepoURLs)
+        licenses.formUnion(githubLicenses)
 
         logger.info("📦 Loaded \(licenses.count) unique licenses")
 

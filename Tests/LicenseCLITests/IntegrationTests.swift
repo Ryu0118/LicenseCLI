@@ -35,7 +35,9 @@ final class IntegrationTests{
         "swift-case-paths",
         "xctest-dynamic-overlay",
         "swift-atomics",
-        "swift-sharing"
+        "swift-sharing",
+        "swift",
+        "swift-build"
     ]
 
     init() throws {
@@ -70,6 +72,10 @@ final class IntegrationTests{
                 nioFixtureURL.path(percentEncoded: false),
                 cowBoxFixtureURL.path(percentEncoded: false),
             ],
+            githubRepoURLs: [
+                "https://github.com/swiftlang/swift",
+                "https://github.com/swiftlang/swift-build"
+            ],
             outputDirectoryPath: outputDirURL.path(percentEncoded: false),
             fileName: outputFileName
         )
@@ -79,6 +85,10 @@ final class IntegrationTests{
                 tca2FixtureURL.path(percentEncoded: false),
                 nioFixtureURL.path(percentEncoded: false),
                 cowBoxFixtureURL.path(percentEncoded: false),
+            ],
+            githubRepoURLs: [
+                "https://github.com/swiftlang/swift",
+                "https://github.com/swiftlang/swift-build"
             ],
             outputDirectoryPath: outputDirURL.path(percentEncoded: false),
             fileName: outputFileName

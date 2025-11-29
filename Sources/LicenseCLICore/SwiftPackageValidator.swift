@@ -9,10 +9,17 @@ public struct SwiftPackageValidator {
 
     public func validate(
         packageDirectoryPaths: [String],
+        githubRepoURLs: [String],
         outputDirectoryPath: String,
         fileName: String
     ) throws {
         logger.trace("Validating \(packageDirectoryPaths.count) package directories")
+        logger.trace("Validating \(githubRepoURLs.count) GitHub repository URLs")
+
+        guard !packageDirectoryPaths.isEmpty || !githubRepoURLs.isEmpty else {
+            logger.error("No package directories or GitHub repository URLs provided")
+            throw SwiftPackageValidatorError.noInputProvided
+        }
 
         for packageDirectoryPath in packageDirectoryPaths {
             try validate(
@@ -22,7 +29,28 @@ public struct SwiftPackageValidator {
             )
         }
 
+        for githubRepoURL in githubRepoURLs {
+            try validateGitHubURL(githubRepoURL)
+        }
+
         logger.info("\(ANSIColor.colored("✓ Validation completed successfully", color: .green))")
+    }
+
+    private func validateGitHubURL(_ urlString: String) throws {
+        guard let url = URL(string: urlString),
+              let host = url.host,
+              host == "github.com" || host == "www.github.com" else {
+            logger.error("Invalid GitHub URL: \(urlString)")
+            throw SwiftPackageValidatorError.invalidGitHubURL(urlString)
+        }
+
+        let pathComponents = url.pathComponents.filter { $0 != "/" }
+        guard pathComponents.count >= 2 else {
+            logger.error("GitHub URL must contain owner and repository: \(urlString)")
+            throw SwiftPackageValidatorError.invalidGitHubURL(urlString)
+        }
+
+        logger.trace("Valid GitHub URL: \(urlString)")
     }
 
     private func validate(
@@ -65,6 +93,8 @@ public enum SwiftPackageValidatorError: LocalizedError {
     case invalidPackagePath
     case outputDirectoryIsEmpty
     case fileNameIsEmpty
+    case noInputProvided
+    case invalidGitHubURL(String)
 
     public var errorDescription: String? {
         switch self {
@@ -74,6 +104,10 @@ public enum SwiftPackageValidatorError: LocalizedError {
             "Output Directory cannot be empty"
         case .fileNameIsEmpty:
             "name option cannot be empty"
+        case .noInputProvided:
+            "At least one package directory or GitHub repository URL must be provided"
+        case .invalidGitHubURL(let url):
+            "Invalid GitHub URL: \(url). URL must be in format https://github.com/owner/repo"
         }
     }
 }

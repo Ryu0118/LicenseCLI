@@ -4,7 +4,10 @@ import LicenseCLICore
 @main
 struct LicenseCLI: AsyncParsableCommand {
     @Argument(help: "Directories where Package.swift is located")
-    var projectDirectory: [String]
+    var projectDirectory: [String] = []
+
+    @Option(name: .long, parsing: .upToNextOption, help: "GitHub repository URLs (e.g., https://github.com/owner/repo)")
+    var githubRepo: [String] = []
 
     @Option(name: .shortAndLong, help: "Output directory")
     var outputDirectory: String
@@ -20,6 +23,7 @@ struct LicenseCLI: AsyncParsableCommand {
     mutating func run() async throws {
         try await Runner().run(
             packageDirectoryPaths: projectDirectory,
+            githubRepoURLs: githubRepo,
             outputDirectoryPath: outputDirectory,
             fileName: name
         )
@@ -29,6 +33,7 @@ struct LicenseCLI: AsyncParsableCommand {
         LicenseCLICore.setupLogging(verbose: verbose)
         try SwiftPackageValidator().validate(
             packageDirectoryPaths: projectDirectory,
+            githubRepoURLs: githubRepo,
             outputDirectoryPath: outputDirectory,
             fileName: name
         )

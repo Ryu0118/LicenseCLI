@@ -75,7 +75,7 @@ struct LicenseLoader {
         return licenses
     }
 
-    private func fetchLicense(
+    func fetchLicense(
         identity: String,
         name: String,
         licenseURL: URL,

@@ -21,6 +21,14 @@ enum SourceWriter {
 
         logger.trace("Writing generated code to \(outputURL.path)")
 
+        // Ensure parent directory exists
+        let parentDirectory = outputURL.deletingLastPathComponent()
+        try FileManager.default.createDirectory(
+            at: parentDirectory,
+            withIntermediateDirectories: true,
+            attributes: nil
+        )
+
         try whole.write(to: outputURL, atomically: true, encoding: .utf8)
 
         logger.info("💾 Wrote license file to \(outputURL.path)")

@@ -100,7 +100,7 @@ final class IntegrationTests{
             ],
             githubRepoURLs: [
                 "https://github.com/swiftlang/swift",
-                "https://github.com/swiftlang/swift-build",
+                "https://github.com/swiftlang/swift-build@swift-6.2-DEVELOPMENT-SNAPSHOT-2025-11-26-a",
                 "https://github.com/Ryu0118/LicenseCLI@0.4.0"
             ],
             packageDependenciesURLs: [
@@ -120,7 +120,7 @@ final class IntegrationTests{
             ],
             githubRepoURLs: [
                 "https://github.com/swiftlang/swift",
-                "https://github.com/swiftlang/swift-build",
+                "https://github.com/swiftlang/swift-build@swift-6.2-DEVELOPMENT-SNAPSHOT-2025-11-26-a",
                 "https://github.com/Ryu0118/LicenseCLI@0.4.0"
             ],
             packageDependenciesURLs: [

@@ -37,7 +37,32 @@ final class IntegrationTests{
         "swift-atomics",
         "swift-sharing",
         "swift",
-        "swift-build"
+        "swift-build",
+        "swift-configuration",
+        "swift-async-algorithms",
+        "swift-log",
+        "swift-service-lifecycle",
+        "app-store-server-library-swift",
+        "async-http-client",
+        "jwt-kit",
+        "swift-algorithms",
+        "swift-asn1",
+        "swift-certificates",
+        "swift-crypto",
+        "swift-distributed-tracing",
+        "swift-docc-plugin",
+        "swift-docc-symbolkit",
+        "swift-http-structured-headers",
+        "swift-http-types",
+        "swift-nio-extras",
+        "swift-nio-http2",
+        "swift-nio-ssl",
+        "swift-nio-transport-services",
+        "swift-numerics",
+        "swift-service-context",
+        "SemanticVersion",
+        "pkl-swift",
+        "swift-argument-parser"
     ]
 
     init() throws {
@@ -76,6 +101,11 @@ final class IntegrationTests{
                 "https://github.com/swiftlang/swift",
                 "https://github.com/swiftlang/swift-build"
             ],
+            packageDependenciesURLs: [
+                "https://github.com/apple/swift-configuration@1.0.0-alpha.1",
+                "https://github.com/apple/app-store-server-library-swift@5da964ee0cd78d19072388b07f52940d0368f998",
+                "https://github.com/apple/pkl-swift@main"
+            ],
             outputDirectoryPath: outputDirURL.path(percentEncoded: false),
             fileName: outputFileName
         )
@@ -89,6 +119,11 @@ final class IntegrationTests{
             githubRepoURLs: [
                 "https://github.com/swiftlang/swift",
                 "https://github.com/swiftlang/swift-build"
+            ],
+            packageDependenciesURLs: [
+                "https://github.com/apple/swift-configuration@1.0.0-alpha.1",
+                "https://github.com/apple/app-store-server-library-swift@main",
+                "https://github.com/apple/pkl-swift@main"
             ],
             outputDirectoryPath: outputDirURL.path(percentEncoded: false),
             fileName: outputFileName

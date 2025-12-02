@@ -10,14 +10,16 @@ public struct SwiftPackageValidator {
     public func validate(
         packageDirectoryPaths: [String],
         githubRepoURLs: [String],
+        packageDependenciesURLs: [String],
         outputDirectoryPath: String,
         fileName: String
     ) throws {
         logger.trace("Validating \(packageDirectoryPaths.count) package directories")
         logger.trace("Validating \(githubRepoURLs.count) GitHub repository URLs")
+        logger.trace("Validating \(packageDependenciesURLs.count) package dependency URLs")
 
-        guard !packageDirectoryPaths.isEmpty || !githubRepoURLs.isEmpty else {
-            logger.error("No package directories or GitHub repository URLs provided")
+        guard !packageDirectoryPaths.isEmpty || !githubRepoURLs.isEmpty || !packageDependenciesURLs.isEmpty else {
+            logger.error("No package directories, GitHub repository URLs, or package dependency URLs provided")
             throw SwiftPackageValidatorError.noInputProvided
         }
 
@@ -31,6 +33,15 @@ public struct SwiftPackageValidator {
 
         for githubRepoURL in githubRepoURLs {
             try validateGitHubURL(githubRepoURL)
+        }
+
+        for packageDepsURL in packageDependenciesURLs {
+            try validatePackageDepsURL(packageDepsURL)
+        }
+
+        // Validate git is available if package-deps is used
+        if !packageDependenciesURLs.isEmpty {
+            try validateGitAvailability()
         }
 
         logger.info("\(ANSIColor.colored("✓ Validation completed successfully", color: .green))")
@@ -51,6 +62,24 @@ public struct SwiftPackageValidator {
         }
 
         logger.trace("Valid GitHub URL: \(urlString)")
+    }
+
+    private func validatePackageDepsURL(_ urlString: String) throws {
+        // Parse the URL to validate it can be parsed as GitHubRepoWithVersion
+        guard GitHubRepoWithVersion(urlString: urlString) != nil else {
+            logger.error("Invalid package dependency URL: \(urlString)")
+            throw SwiftPackageValidatorError.invalidPackageDepsURL(urlString)
+        }
+
+        logger.trace("Valid package dependency URL: \(urlString)")
+    }
+
+    private func validateGitAvailability() throws {
+        guard GitOperations.isGitAvailable() else {
+            logger.error("git command is not available")
+            throw SwiftPackageValidatorError.gitNotAvailable
+        }
+        logger.trace("git is available")
     }
 
     private func validate(
@@ -95,6 +124,8 @@ public enum SwiftPackageValidatorError: LocalizedError {
     case fileNameIsEmpty
     case noInputProvided
     case invalidGitHubURL(String)
+    case invalidPackageDepsURL(String)
+    case gitNotAvailable
 
     public var errorDescription: String? {
         switch self {
@@ -105,9 +136,13 @@ public enum SwiftPackageValidatorError: LocalizedError {
         case .fileNameIsEmpty:
             "name option cannot be empty"
         case .noInputProvided:
-            "At least one package directory or GitHub repository URL must be provided"
+            "At least one package directory, GitHub repository URL, or package dependency URL must be provided"
         case .invalidGitHubURL(let url):
             "Invalid GitHub URL: \(url). URL must be in format https://github.com/owner/repo"
+        case .invalidPackageDepsURL(let url):
+            "Invalid package dependency URL: \(url). URL must be in format https://github.com/owner/repo[@version]"
+        case .gitNotAvailable:
+            "git command is not available. Please install git to use --package-deps option"
         }
     }
 }

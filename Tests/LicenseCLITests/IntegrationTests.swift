@@ -62,7 +62,8 @@ final class IntegrationTests{
         "swift-service-context",
         "SemanticVersion",
         "pkl-swift",
-        "swift-argument-parser"
+        "swift-argument-parser",
+        "LicenseCLI"
     ]
 
     init() throws {
@@ -99,7 +100,8 @@ final class IntegrationTests{
             ],
             githubRepoURLs: [
                 "https://github.com/swiftlang/swift",
-                "https://github.com/swiftlang/swift-build"
+                "https://github.com/swiftlang/swift-build",
+                "https://github.com/Ryu0118/LicenseCLI@0.4.0"
             ],
             packageDependenciesURLs: [
                 "https://github.com/apple/swift-configuration@1.0.0-alpha.1",
@@ -118,7 +120,8 @@ final class IntegrationTests{
             ],
             githubRepoURLs: [
                 "https://github.com/swiftlang/swift",
-                "https://github.com/swiftlang/swift-build"
+                "https://github.com/swiftlang/swift-build",
+                "https://github.com/Ryu0118/LicenseCLI@0.4.0"
             ],
             packageDependenciesURLs: [
                 "https://github.com/apple/swift-configuration@1.0.0-alpha.1",

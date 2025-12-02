@@ -43,24 +43,44 @@ struct LicenseLoader {
 
         let licenses = try await withThrowingTaskGroup(of: License?.self) { group in
             for repoURLString in repoURLs {
-                guard let repo = GitHubRepo(urlString: repoURLString) else {
+                // Try to parse as GitHubRepoWithVersion first (supports @version)
+                if let repoWithVersion = GitHubRepoWithVersion(urlString: repoURLString) {
+                    let repo = repoWithVersion.repo
+                    let version = repoWithVersion.version.gitReference
+                    
+                    guard let licenseURL = repo.licenseURL(for: version),
+                          let licenseTxtURL = repo.licenseTxtURL(for: version) else {
+                        logger.warning("Cannot find license URL for: \(repo.identity) @ \(version)")
+                        continue
+                    }
+
+                    group.addTask {
+                        try await fetchLicense(
+                            identity: repo.identity,
+                            name: repo.name,
+                            licenseURL: licenseURL,
+                            licenseTxtURL: licenseTxtURL
+                        )
+                    }
+                } else if let repo = GitHubRepo(urlString: repoURLString) {
+                    // Fallback to GitHubRepo (no version specified, use HEAD)
+                    guard let licenseURL = repo.licenseURL,
+                          let licenseTxtURL = repo.licenseTxtURL
+                    else {
+                        continue
+                    }
+
+                    group.addTask {
+                        try await fetchLicense(
+                            identity: repo.identity,
+                            name: repo.name,
+                            licenseURL: licenseURL,
+                            licenseTxtURL: licenseTxtURL
+                        )
+                    }
+                } else {
                     logger.warning("Invalid GitHub repo URL: \(repoURLString)")
                     continue
-                }
-
-                guard let licenseURL = repo.licenseURL,
-                      let licenseTxtURL = repo.licenseTxtURL
-                else {
-                    continue
-                }
-
-                group.addTask {
-                    try await fetchLicense(
-                        identity: repo.identity,
-                        name: repo.name,
-                        licenseURL: licenseURL,
-                        licenseTxtURL: licenseTxtURL
-                    )
                 }
             }
 

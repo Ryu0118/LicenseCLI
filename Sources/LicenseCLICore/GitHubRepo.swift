@@ -16,6 +16,14 @@ struct GitHubRepo {
         URL(string: "https://raw.githubusercontent.com/\(owner)/\(name)/HEAD/LICENSE.txt")
     }
 
+    func licenseURL(for version: String) -> URL? {
+        URL(string: "https://raw.githubusercontent.com/\(owner)/\(name)/\(version)/LICENSE")
+    }
+
+    func licenseTxtURL(for version: String) -> URL? {
+        URL(string: "https://raw.githubusercontent.com/\(owner)/\(name)/\(version)/LICENSE.txt")
+    }
+
     init?(urlString: String) {
         guard let url = URL(string: urlString) else { return nil }
         let pathComponents = url.pathComponents.filter { $0 != "/" }

@@ -88,4 +88,38 @@ enum GitOperations {
             throw GitOperationsError.commandFailed("Failed to get current branch: \(error.localizedDescription)")
         }
     }
+
+    /// Get the current revision (commit SHA) of the repository
+    static func getCurrentRevision(at directory: URL) throws -> String? {
+        do {
+            let output = try Command.run(
+                launchPath: "/usr/bin/git",
+                currentDirectoryPath: directory.path,
+                arguments: ["rev-parse", "HEAD"]
+            )
+            return output?.trimmingCharacters(in: .whitespacesAndNewlines)
+        } catch {
+            throw GitOperationsError.commandFailed("Failed to get current revision: \(error.localizedDescription)")
+        }
+    }
+
+    /// Check if a directory is a git repository
+    static func isGitRepository(at directory: URL) -> Bool {
+        let gitDir = directory.appendingPathComponent(".git")
+        return FileManager.default.fileExists(atPath: gitDir.path) || FileManager.default.fileExists(atPath: directory.path + "/.git")
+    }
+
+    /// Get the revision for a specific reference (branch, tag, or commit)
+    static func getRevision(for reference: String, at directory: URL) throws -> String? {
+        do {
+            let output = try Command.run(
+                launchPath: "/usr/bin/git",
+                currentDirectoryPath: directory.path,
+                arguments: ["rev-parse", reference]
+            )
+            return output?.trimmingCharacters(in: .whitespacesAndNewlines)
+        } catch {
+            throw GitOperationsError.commandFailed("Failed to get revision for \(reference): \(error.localizedDescription)")
+        }
+    }
 }

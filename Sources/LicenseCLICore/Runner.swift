@@ -22,6 +22,7 @@ public struct Runner {
         packageDirectoryPaths: [String],
         githubRepoURLs: [String],
         packageDependenciesURLs: [String],
+        packageDepsCacheDirectory: String?,
         outputDirectoryPath: String,
         fileName: String
     ) async throws {
@@ -50,7 +51,10 @@ public struct Runner {
         licenses.formUnion(githubLicenses)
 
         // Process package dependencies (--package-deps option)
-        let packageDepsLicenses = try await processPackageDependencies(packageDependenciesURLs)
+        let packageDepsLicenses = try await processPackageDependencies(
+            packageDependenciesURLs,
+            cacheDirectory: packageDepsCacheDirectory
+        )
         licenses.formUnion(packageDepsLicenses)
 
         logger.info("📦 Loaded \(licenses.count) unique licenses")
@@ -69,7 +73,7 @@ public struct Runner {
         logger.info("\(ANSIColor.colored("✅ Successfully generated license file at \(outputURL.path)", color: .green))")
     }
 
-    private func processPackageDependencies(_ packageDependenciesURLs: [String]) async throws -> Set<License> {
+    private func processPackageDependencies(_ packageDependenciesURLs: [String], cacheDirectory: String?) async throws -> Set<License> {
         guard !packageDependenciesURLs.isEmpty else { return [] }
 
         logger.info("🔧 Processing \(packageDependenciesURLs.count) package dependency URL(s)")
@@ -93,7 +97,10 @@ public struct Runner {
                     }
 
                     // Then resolve and fetch licenses for all dependencies
-                    if let dependencies = try self.packageDependenciesResolver.resolve(repoWithVersion: repoWithVersion) {
+                    if let dependencies = try self.packageDependenciesResolver.resolve(
+                        repoWithVersion: repoWithVersion,
+                        cacheDirectory: cacheDirectory
+                    ) {
                         let dependencyLicenses = try await self.licenseLoader.load(for: dependencies)
                         allLicenses.append(contentsOf: dependencyLicenses)
                         logger.info("📚 Fetched \(dependencyLicenses.count) dependency licenses for \(repoWithVersion.repo.identity)")

@@ -13,6 +13,7 @@ final class IntegrationTests{
     let cowBoxFixtureURL: URL
     let printLicensesURL: URL
     let binaryOutputURL: URL
+    let cacheDirURL: URL
     let fileManager: FileManager
 
     let outputFileName = "Licenses"
@@ -70,6 +71,7 @@ final class IntegrationTests{
         let fixtureURL = URL(filePath: #filePath).deletingLastPathComponent().appending(component: "Fixtures")
         outputDirURL = fixtureURL.appending(component: "output")
         outputFileURL = outputDirURL.appending(component: outputFileName).appendingPathExtension("swift")
+        cacheDirURL = fixtureURL.appending(component: "cache")
         fileManager = FileManager.default
         tca1FixtureURL = fixtureURL.appending(component: "ComposableArchitecture1")
         tca2FixtureURL = fixtureURL.appending(component: "ComposableArchitecture2")
@@ -79,10 +81,12 @@ final class IntegrationTests{
         binaryOutputURL = outputDirURL.appending(component: "main")
 
         try fileManager.createDirectory(at: outputDirURL, withIntermediateDirectories: true)
+        try fileManager.createDirectory(at: cacheDirURL, withIntermediateDirectories: true)
     }
 
     deinit {
         try? fileManager.removeItem(at: outputDirURL)
+        try? fileManager.removeItem(at: cacheDirURL)
         try? fileManager.removeItem(at: tca1FixtureURL.appending(component: "Package.resolved"))
         try? fileManager.removeItem(at: tca2FixtureURL.appending(component: "Package.resolved"))
         try? fileManager.removeItem(at: nioFixtureURL.appending(component: "Package.resolved"))
@@ -128,6 +132,7 @@ final class IntegrationTests{
                 "https://github.com/apple/app-store-server-library-swift@main",
                 "https://github.com/apple/pkl-swift@main"
             ],
+            packageDepsCacheDirectory: cacheDirURL.path(percentEncoded: false),
             outputDirectoryPath: outputDirURL.path(percentEncoded: false),
             fileName: outputFileName
         )

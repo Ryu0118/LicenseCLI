@@ -3,7 +3,7 @@ import LicenseCLICore
 
 @main
 struct LicenseCLI: AsyncParsableCommand {
-    @Argument(help: "Directories where Package.swift is located")
+    @Argument(help: "Directories where Package.swift is located", completion: .directory)
     var projectDirectory: [String] = []
 
     @Option(name: .long, parsing: .upToNextOption, help: "GitHub repository URLs (e.g., https://github.com/owner/repo)")
@@ -12,7 +12,10 @@ struct LicenseCLI: AsyncParsableCommand {
     @Option(name: .long, parsing: .upToNextOption, help: "GitHub repository URLs with dependencies (e.g., https://github.com/owner/repo@1.0.0)")
     var packageDeps: [String] = []
 
-    @Option(name: .shortAndLong, help: "Output directory")
+    @Option(name: .long, help: "Cache directory for package dependencies clones (reuses existing clones if revision matches)", completion: .directory)
+    var packageDepsCacheDir: String?
+
+    @Option(name: .shortAndLong, help: "Output directory", completion: .directory)
     var outputDirectory: String
 
     @Option(name: .shortAndLong)
@@ -28,6 +31,7 @@ struct LicenseCLI: AsyncParsableCommand {
             packageDirectoryPaths: projectDirectory,
             githubRepoURLs: githubRepo,
             packageDependenciesURLs: packageDeps,
+            packageDepsCacheDirectory: packageDepsCacheDir,
             outputDirectoryPath: outputDirectory,
             fileName: name
         )

@@ -116,7 +116,8 @@ public struct Runner {
         let version = repoWithVersion.version.gitReference
         
         guard let licenseURL = repo.licenseURL(for: version),
-              let licenseTxtURL = repo.licenseTxtURL(for: version) else {
+              let licenseTxtURL = repo.licenseTxtURL(for: version),
+              let licenseTxtURL2 = repo.licenseTxtURL2(for: version) else {
             return nil
         }
 
@@ -125,7 +126,8 @@ public struct Runner {
             identity: repo.identity,
             name: repo.name,
             licenseURL: licenseURL,
-            licenseTxtURL: licenseTxtURL
+            licenseTxtURL: licenseTxtURL,
+            licenseTxtURL2: licenseTxtURL2
         )
     }
 }

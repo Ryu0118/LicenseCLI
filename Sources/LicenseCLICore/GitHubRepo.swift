@@ -16,12 +16,20 @@ struct GitHubRepo {
         URL(string: "https://raw.githubusercontent.com/\(owner)/\(name)/HEAD/LICENSE.txt")
     }
 
+    var licenseTxtURL2: URL? {
+        URL(string: "https://raw.githubusercontent.com/\(owner)/\(name)/HEAD/License.txt")
+    }
+
     func licenseURL(for version: String) -> URL? {
         URL(string: "https://raw.githubusercontent.com/\(owner)/\(name)/\(version)/LICENSE")
     }
 
     func licenseTxtURL(for version: String) -> URL? {
         URL(string: "https://raw.githubusercontent.com/\(owner)/\(name)/\(version)/LICENSE.txt")
+    }
+
+    func licenseTxtURL2(for version: String) -> URL? {
+        URL(string: "https://raw.githubusercontent.com/\(owner)/\(name)/\(version)/License.txt")
     }
 
     init?(urlString: String) {

@@ -9,7 +9,8 @@ struct LicenseLoader {
         let licenses = try await withThrowingTaskGroup(of: License?.self) { group in
             for pin in dependencies.pins {
                 guard let licenseURL = pin.licenseURL,
-                      let licenseTxtURL = pin.licenseTxtURL
+                      let licenseTxtURL = pin.licenseTxtURL,
+                      let licenseTxtURL2 = pin.licenseTxtURL2
                 else {
                     logger.error("Cannot find license URL for: \(pin.identity) at \(pin.location)")
                     throw RunnerError.cannotFindLicenseURL(location: pin.location)
@@ -20,7 +21,8 @@ struct LicenseLoader {
                         identity: pin.identity,
                         name: pin.name,
                         licenseURL: licenseURL,
-                        licenseTxtURL: licenseTxtURL
+                        licenseTxtURL: licenseTxtURL,
+                        licenseTxtURL2: licenseTxtURL2
                     )
                 }
             }
@@ -49,7 +51,8 @@ struct LicenseLoader {
                 }
 
                 guard let licenseURL = repo.licenseURL,
-                      let licenseTxtURL = repo.licenseTxtURL
+                      let licenseTxtURL = repo.licenseTxtURL,
+                      let licenseTxtURL2 = repo.licenseTxtURL2
                 else {
                     continue
                 }
@@ -59,7 +62,8 @@ struct LicenseLoader {
                         identity: repo.identity,
                         name: repo.name,
                         licenseURL: licenseURL,
-                        licenseTxtURL: licenseTxtURL
+                        licenseTxtURL: licenseTxtURL,
+                        licenseTxtURL2: licenseTxtURL2
                     )
                 }
             }
@@ -79,7 +83,8 @@ struct LicenseLoader {
         identity: String,
         name: String,
         licenseURL: URL,
-        licenseTxtURL: URL
+        licenseTxtURL: URL,
+        licenseTxtURL2: URL
     ) async throws -> License? {
         logger.trace("Fetching license for \(identity) from \(licenseURL)")
 
@@ -111,7 +116,20 @@ struct LicenseLoader {
                 logger.trace("Successfully fetched LICENSE.txt for \(identity)")
                 return License(identity: identity, name: name, license: licenseText)
             } else {
-                logger.warning("Neither LICENSE nor LICENSE.txt found for \(identity)")
+                logger.trace("LICENSE.txt not found, trying License.txt for \(identity)")
+                let (txt2Result, txt2Response) = try await urlSession.data(from: licenseTxtURL2)
+
+                if let txt2HttpResponse = txt2Response as? HTTPURLResponse,
+                   txt2HttpResponse.statusCode == 200 {
+                    guard let licenseText = String(data: txt2Result, encoding: .utf8) else {
+                        logger.warning("Failed to decode license data for \(identity)")
+                        return nil
+                    }
+                    logger.trace("Successfully fetched License.txt for \(identity)")
+                    return License(identity: identity, name: name, license: licenseText)
+                } else {
+                    logger.warning("Neither LICENSE, LICENSE.txt, nor License.txt found for \(identity)")
+                }
             }
         default:
             logger.warning("Unexpected status code \(httpResponse.statusCode) for \(identity)")

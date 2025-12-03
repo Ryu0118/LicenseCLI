@@ -108,55 +108,50 @@ struct LicenseLoader {
         licenseTxtURL: URL,
         licenseTxtURL2: URL
     ) async throws -> License? {
-        logger.trace("Fetching license for \(identity) from \(licenseURL)")
+        // Try LICENSE first
+        if let license = try await tryFetchLicense(from: licenseURL, identity: identity, name: name, fileName: "LICENSE") {
+            return license
+        }
 
-        let (result, response) = try await urlSession.data(from: licenseURL)
+        // Try LICENSE.txt as fallback
+        if let license = try await tryFetchLicense(from: licenseTxtURL, identity: identity, name: name, fileName: "LICENSE.txt") {
+            return license
+        }
+
+        // Try License.txt as final fallback
+        if let license = try await tryFetchLicense(from: licenseTxtURL2, identity: identity, name: name, fileName: "License.txt") {
+            return license
+        }
+
+        logger.warning("Neither LICENSE, LICENSE.txt, nor License.txt found for \(identity)")
+        return nil
+    }
+
+    private func tryFetchLicense(from url: URL, identity: String, name: String, fileName: String) async throws -> License? {
+        logger.trace("Fetching license for \(identity) from \(url)")
+
+        let (data, response) = try await urlSession.data(from: url)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             logger.warning("Invalid HTTP response for \(identity)")
             return nil
         }
 
-        switch httpResponse.statusCode {
-        case 200:
-            guard let licenseText = String(data: result, encoding: .utf8) else {
-                logger.warning("Failed to decode license data for \(identity)")
-                return nil
-            }
-            logger.trace("Successfully fetched LICENSE for \(identity)")
-            return License(identity: identity, name: name, license: licenseText)
-        case 404:
-            logger.trace("LICENSE not found, trying LICENSE.txt for \(identity)")
-            let (txtResult, txtResponse) = try await urlSession.data(from: licenseTxtURL)
-
-            if let txtHttpResponse = txtResponse as? HTTPURLResponse,
-               txtHttpResponse.statusCode == 200 {
-                guard let licenseText = String(data: txtResult, encoding: .utf8) else {
-                    logger.warning("Failed to decode license data for \(identity)")
-                    return nil
-                }
-                logger.trace("Successfully fetched LICENSE.txt for \(identity)")
-                return License(identity: identity, name: name, license: licenseText)
+        guard httpResponse.statusCode == 200 else {
+            if httpResponse.statusCode == 404 {
+                logger.trace("\(fileName) not found for \(identity)")
             } else {
-                logger.trace("LICENSE.txt not found, trying License.txt for \(identity)")
-                let (txt2Result, txt2Response) = try await urlSession.data(from: licenseTxtURL2)
-
-                if let txt2HttpResponse = txt2Response as? HTTPURLResponse,
-                   txt2HttpResponse.statusCode == 200 {
-                    guard let licenseText = String(data: txt2Result, encoding: .utf8) else {
-                        logger.warning("Failed to decode license data for \(identity)")
-                        return nil
-                    }
-                    logger.trace("Successfully fetched License.txt for \(identity)")
-                    return License(identity: identity, name: name, license: licenseText)
-                } else {
-                    logger.warning("Neither LICENSE, LICENSE.txt, nor License.txt found for \(identity)")
-                }
+                logger.warning("Unexpected status code \(httpResponse.statusCode) for \(identity) when fetching \(fileName)")
             }
-        default:
-            logger.warning("Unexpected status code \(httpResponse.statusCode) for \(identity)")
+            return nil
         }
 
-        return nil
+        guard let licenseText = String(data: data, encoding: .utf8) else {
+            logger.warning("Failed to decode license data for \(identity)")
+            return nil
+        }
+
+        logger.trace("Successfully fetched \(fileName) for \(identity)")
+        return License(identity: identity, name: name, license: licenseText)
     }
 }

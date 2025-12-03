@@ -64,7 +64,8 @@ final class IntegrationTests{
         "SemanticVersion",
         "pkl-swift",
         "swift-argument-parser",
-        "LicenseCLI"
+        "LicenseCLI",
+        "ocmock"
     ]
 
     init() throws {
@@ -105,7 +106,8 @@ final class IntegrationTests{
             githubRepoURLs: [
                 "https://github.com/swiftlang/swift",
                 "https://github.com/swiftlang/swift-build@swift-6.2-DEVELOPMENT-SNAPSHOT-2025-11-26-a",
-                "https://github.com/Ryu0118/LicenseCLI@0.4.0"
+                "https://github.com/Ryu0118/LicenseCLI@0.4.0",
+                "https://github.com/erikdoe/ocmock"
             ],
             packageDependenciesURLs: [
                 "https://github.com/apple/swift-configuration@1.0.0-alpha.1",
@@ -125,7 +127,8 @@ final class IntegrationTests{
             githubRepoURLs: [
                 "https://github.com/swiftlang/swift",
                 "https://github.com/swiftlang/swift-build@swift-6.2-DEVELOPMENT-SNAPSHOT-2025-11-26-a",
-                "https://github.com/Ryu0118/LicenseCLI@0.4.0"
+                "https://github.com/Ryu0118/LicenseCLI@0.4.0",
+                "https://github.com/erikdoe/ocmock"
             ],
             packageDependenciesURLs: [
                 "https://github.com/apple/swift-configuration@1.0.0-alpha.1",

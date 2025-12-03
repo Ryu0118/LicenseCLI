@@ -16,7 +16,7 @@ struct GitHubRepo {
         URL(string: "https://raw.githubusercontent.com/\(owner)/\(name)/HEAD/LICENSE.txt")
     }
 
-    var licenseTxtURL2: URL? {
+    var licenseCapitalTxtURL: URL? {
         URL(string: "https://raw.githubusercontent.com/\(owner)/\(name)/HEAD/License.txt")
     }
 
@@ -28,7 +28,7 @@ struct GitHubRepo {
         URL(string: "https://raw.githubusercontent.com/\(owner)/\(name)/\(version)/LICENSE.txt")
     }
 
-    func licenseTxtURL2(for version: String) -> URL? {
+    func licenseCapitalTxtURL(for version: String) -> URL? {
         URL(string: "https://raw.githubusercontent.com/\(owner)/\(name)/\(version)/License.txt")
     }
 

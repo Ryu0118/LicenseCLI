@@ -10,7 +10,7 @@ struct LicenseLoader {
             for pin in dependencies.pins {
                 guard let licenseURL = pin.licenseURL,
                       let licenseTxtURL = pin.licenseTxtURL,
-                      let licenseTxtURL2 = pin.licenseTxtURL2
+                      let licenseCapitalTxtURL = pin.licenseCapitalTxtURL
                 else {
                     logger.error("Cannot find license URL for: \(pin.identity) at \(pin.location)")
                     throw RunnerError.cannotFindLicenseURL(location: pin.location)
@@ -22,7 +22,7 @@ struct LicenseLoader {
                         name: pin.name,
                         licenseURL: licenseURL,
                         licenseTxtURL: licenseTxtURL,
-                        licenseTxtURL2: licenseTxtURL2
+                        licenseCapitalTxtURL: licenseCapitalTxtURL
                     )
                 }
             }
@@ -52,7 +52,7 @@ struct LicenseLoader {
                     
                     guard let licenseURL = repo.licenseURL(for: version),
                           let licenseTxtURL = repo.licenseTxtURL(for: version),
-                          let licenseTxtURL2 = repo.licenseTxtURL2(for: version) else {
+                          let licenseCapitalTxtURL = repo.licenseCapitalTxtURL(for: version) else {
                         logger.warning("Cannot find license URL for: \(repo.identity) @ \(version)")
                         continue
                     }
@@ -63,14 +63,14 @@ struct LicenseLoader {
                             name: repo.name,
                             licenseURL: licenseURL,
                             licenseTxtURL: licenseTxtURL,
-                            licenseTxtURL2: licenseTxtURL2
+                            licenseCapitalTxtURL: licenseCapitalTxtURL
                         )
                     }
                 } else if let repo = GitHubRepo(urlString: repoURLString) {
                     // Fallback to GitHubRepo (no version specified, use HEAD)
                     guard let licenseURL = repo.licenseURL,
                           let licenseTxtURL = repo.licenseTxtURL,
-                          let licenseTxtURL2 = repo.licenseTxtURL2
+                          let licenseCapitalTxtURL = repo.licenseCapitalTxtURL
                     else {
                         continue
                     }
@@ -81,7 +81,7 @@ struct LicenseLoader {
                             name: repo.name,
                             licenseURL: licenseURL,
                             licenseTxtURL: licenseTxtURL,
-                            licenseTxtURL2: licenseTxtURL2
+                            licenseCapitalTxtURL: licenseCapitalTxtURL
                         )
                     }
                 } else {
@@ -106,7 +106,7 @@ struct LicenseLoader {
         name: String,
         licenseURL: URL,
         licenseTxtURL: URL,
-        licenseTxtURL2: URL
+        licenseCapitalTxtURL: URL
     ) async throws -> License? {
         // Try LICENSE first
         if let license = try await tryFetchLicense(from: licenseURL, identity: identity, name: name, fileName: "LICENSE") {
@@ -119,7 +119,7 @@ struct LicenseLoader {
         }
 
         // Try License.txt as final fallback
-        if let license = try await tryFetchLicense(from: licenseTxtURL2, identity: identity, name: name, fileName: "License.txt") {
+        if let license = try await tryFetchLicense(from: licenseCapitalTxtURL, identity: identity, name: name, fileName: "License.txt") {
             return license
         }
 

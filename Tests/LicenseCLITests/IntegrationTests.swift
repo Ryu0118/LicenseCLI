@@ -38,6 +38,7 @@ final class IntegrationTests{
         "swift-atomics",
         "swift-sharing",
         "swift",
+        "swift-build",
         "swift-configuration",
         "swift-async-algorithms",
         "swift-log",

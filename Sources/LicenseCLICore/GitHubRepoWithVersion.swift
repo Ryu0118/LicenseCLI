@@ -27,23 +27,14 @@ struct GitHubRepoWithVersion {
     /// - https://github.com/owner/repo@1.2.3
     /// - https://github.com/owner/repo@abc123
     init?(urlString: String) {
-        // Split by @ to separate URL and version
-        let components = urlString.split(separator: "@", maxSplits: 1, omittingEmptySubsequences: false)
-        let repoURLString = String(components[0])
-
-        // Parse the base GitHub repo
-        guard let repo = GitHubRepo(urlString: repoURLString) else {
+        guard let parsed = GitHubRepo.parse(urlString: urlString) else {
             return nil
         }
-        self.repo = repo
+
+        self.repo = GitHubRepo(owner: parsed.owner, name: parsed.name)
 
         // Parse version specification if present
-        if components.count > 1 {
-            let versionString = String(components[1])
-            if versionString.isEmpty {
-                return nil // Invalid: URL ends with @
-            }
-
+        if let versionString = parsed.version {
             // Heuristic: if it looks like a semantic version tag, treat as tag
             // Otherwise, could be branch name or revision
             // For simplicity, we'll treat everything as a git reference

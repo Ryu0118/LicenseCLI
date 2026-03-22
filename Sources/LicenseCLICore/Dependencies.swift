@@ -13,34 +13,23 @@ struct Dependencies: Decodable, Equatable {
         }
 
         var licenseURL: URL? {
-            URL(string: location.rawGithubContentURL())?
-                .appendingPathComponent(state.revision)
-                .appendingPathComponent("LICENSE")
+            repo?.licenseURL(for: state.revision)
         }
 
         var licenseTxtURL: URL? {
-            URL(string: location.rawGithubContentURL())?
-                .appendingPathComponent(state.revision)
-                .appendingPathComponent("LICENSE.txt")
+            repo?.licenseTxtURL(for: state.revision)
         }
 
         var licenseCapitalTxtURL: URL? {
-            URL(string: location.rawGithubContentURL())?
-                .appendingPathComponent(state.revision)
-                .appendingPathComponent("License.txt")
+            repo?.licenseCapitalTxtURL(for: state.revision)
         }
 
         var name: String {
-            URL(string: location.rawGithubContentURL())?.lastPathComponent ?? identity
+            repo?.name ?? identity
         }
-    }
-}
 
-private extension String {
-    func rawGithubContentURL() -> String {
-        replacingOccurrences(of: ".git", with: "").replacingOccurrences(
-            of: "github.com",
-            with: "raw.githubusercontent.com"
-        )
+        private var repo: GitHubRepo? {
+            GitHubRepo(urlString: location)
+        }
     }
 }

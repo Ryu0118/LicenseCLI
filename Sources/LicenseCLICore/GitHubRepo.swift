@@ -65,7 +65,7 @@ struct GitHubRepo {
             return nil
         }
 
-        return parsePath(String(url.path.drop(while: { $0 == "/" })))
+        return parsePath(String(url.path.drop { $0 == "/" }))
     }
 
     private static func parsePath(_ path: String) -> ParsedLocation? {
@@ -115,11 +115,10 @@ struct GitHubRepo {
             return nil
         }
 
-        let normalizedPart: Substring
-        if repositoryPart.hasSuffix(".git") {
-            normalizedPart = repositoryPart.dropLast(4)
+        let normalizedPart: Substring = if repositoryPart.hasSuffix(".git") {
+            repositoryPart.dropLast(4)
         } else {
-            normalizedPart = repositoryPart
+            repositoryPart
         }
 
         guard !normalizedPart.isEmpty else {

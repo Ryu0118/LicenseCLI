@@ -31,7 +31,7 @@ struct GitHubRepoWithVersion {
             return nil
         }
 
-        self.repo = GitHubRepo(owner: parsed.owner, name: parsed.name)
+        repo = GitHubRepo(owner: parsed.owner, name: parsed.name)
 
         // Parse version specification if present
         if let versionString = parsed.version {

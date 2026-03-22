@@ -127,9 +127,9 @@ public enum SwiftPackageValidatorError: LocalizedError {
             "name option cannot be empty"
         case .noInputProvided:
             "At least one package directory, GitHub repository URL, or package dependency URL must be provided"
-        case .invalidGitHubURL(let url):
+        case let .invalidGitHubURL(url):
             "Invalid GitHub URL: \(url). URL must be in format https://github.com/owner/repo[@version] or git@github.com:owner/repo.git[@version]"
-        case .invalidPackageDepsURL(let url):
+        case let .invalidPackageDepsURL(url):
             "Invalid package dependency URL: \(url). URL must be in format https://github.com/owner/repo[@version] or git@github.com:owner/repo.git[@version]"
         case .gitNotAvailable:
             "git command is not available. Please install git to use --package-deps option"

@@ -50,7 +50,8 @@ public struct SwiftPackageValidator {
     private func validateGitHubURL(_ urlString: String) throws {
         guard let url = URL(string: urlString),
               let host = url.host,
-              host == "github.com" || host == "www.github.com" else {
+              host == "github.com" || host == "www.github.com"
+        else {
             logger.error("Invalid GitHub URL: \(urlString)")
             throw SwiftPackageValidatorError.invalidGitHubURL(urlString)
         }
@@ -137,9 +138,9 @@ public enum SwiftPackageValidatorError: LocalizedError {
             "name option cannot be empty"
         case .noInputProvided:
             "At least one package directory, GitHub repository URL, or package dependency URL must be provided"
-        case .invalidGitHubURL(let url):
+        case let .invalidGitHubURL(url):
             "Invalid GitHub URL: \(url). URL must be in format https://github.com/owner/repo"
-        case .invalidPackageDepsURL(let url):
+        case let .invalidPackageDepsURL(url):
             "Invalid package dependency URL: \(url). URL must be in format https://github.com/owner/repo[@version]"
         case .gitNotAvailable:
             "git command is not available. Please install git to use --package-deps option"

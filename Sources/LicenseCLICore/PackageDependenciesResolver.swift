@@ -8,14 +8,14 @@ enum PackageDependenciesResolverError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .invalidURL(let url):
-            return "Invalid package URL: \(url)"
-        case .packageResolveFailed(let message):
-            return "Failed to resolve package: \(message)"
+        case let .invalidURL(url):
+            "Invalid package URL: \(url)"
+        case let .packageResolveFailed(message):
+            "Failed to resolve package: \(message)"
         case .temporaryDirectoryCreationFailed:
-            return "Failed to create temporary directory"
+            "Failed to create temporary directory"
         case .noPackageResolvedGenerated:
-            return "Package.resolved was not generated (package may have no dependencies)"
+            "Package.resolved was not generated (package may have no dependencies)"
         }
     }
 }
@@ -47,7 +47,7 @@ struct PackageDependenciesResolver {
             // Use cache directory
             let cacheURL = URL(fileURLWithPath: cacheDir)
             let repoCacheDir = getCacheDirectory(for: repoWithVersion, in: cacheURL)
-            
+
             // Check if cached directory exists and has the correct revision
             if let existingDir = try getExistingCacheDirectory(repoWithVersion: repoWithVersion, cacheDir: repoCacheDir) {
                 logger.info("♻️ Using cached clone at \(existingDir.path)")
@@ -59,7 +59,7 @@ struct PackageDependenciesResolver {
                     logger.info("🗑️ Removing outdated cache directory: \(repoCacheDir.path)")
                     try? fileManager.removeItem(at: repoCacheDir)
                 }
-                
+
                 // Create cache directory and clone
                 try fileManager.createDirectory(
                     at: repoCacheDir,
@@ -95,8 +95,7 @@ struct PackageDependenciesResolver {
         }
 
         // Load and return dependencies
-        let dependencies = try dependenciesLoader.load(packageDirectoryPath: workDirectory.path)
-        return dependencies
+        return try dependenciesLoader.load(packageDirectoryPath: workDirectory.path)
     }
 
     private func createTemporaryDirectory() throws -> URL {
@@ -229,14 +228,15 @@ struct PackageDependenciesResolver {
                     currentDirectoryPath: cacheDir.path,
                     arguments: ["fetch", "origin", targetReference]
                 )
-                
+
                 // Checkout the reference
                 try GitOperations.checkout(reference: targetReference, at: cacheDir)
-                
+
                 // Verify the current revision matches the target
                 if let currentRevision = try? GitOperations.getCurrentRevision(at: cacheDir),
                    let targetRevision = try? GitOperations.getRevision(for: targetReference, at: cacheDir),
-                   currentRevision == targetRevision {
+                   currentRevision == targetRevision
+                {
                     logger.trace("Cache directory has matching revision: \(currentRevision)")
                     return cacheDir
                 } else {

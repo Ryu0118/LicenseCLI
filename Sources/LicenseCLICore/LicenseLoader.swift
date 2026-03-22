@@ -49,10 +49,11 @@ struct LicenseLoader {
                 if let repoWithVersion = GitHubRepoWithVersion(urlString: repoURLString) {
                     let repo = repoWithVersion.repo
                     let version = repoWithVersion.version.gitReference
-                    
+
                     guard let licenseURL = repo.licenseURL(for: version),
                           let licenseTxtURL = repo.licenseTxtURL(for: version),
-                          let licenseCapitalTxtURL = repo.licenseCapitalTxtURL(for: version) else {
+                          let licenseCapitalTxtURL = repo.licenseCapitalTxtURL(for: version)
+                    else {
                         logger.warning("Cannot find license URL for: \(repo.identity) @ \(version)")
                         continue
                     }

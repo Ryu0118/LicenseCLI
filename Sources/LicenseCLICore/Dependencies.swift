@@ -36,7 +36,7 @@ struct Dependencies: Decodable, Equatable {
     }
 }
 
-fileprivate extension String {
+private extension String {
     func rawGithubContentURL() -> String {
         replacingOccurrences(of: ".git", with: "").replacingOccurrences(
             of: "github.com",

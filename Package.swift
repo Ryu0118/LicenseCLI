@@ -6,10 +6,10 @@ import PackageDescription
 let package = Package(
     name: "LicenseCLI",
     platforms: [
-        .macOS(.v11)
+        .macOS(.v11),
     ],
     products: [
-        .executable(name: "LicenseCLI", targets: ["LicenseCLI"])
+        .executable(name: "LicenseCLI", targets: ["LicenseCLI"]),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
@@ -23,7 +23,7 @@ let package = Package(
             name: "LicenseCLI",
             dependencies: [
                 "LicenseCLICore",
-                .product(name: "ArgumentParser", package: "swift-argument-parser")
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
         ),
         .target(
@@ -31,7 +31,7 @@ let package = Package(
             dependencies: [
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "Logging", package: "swift-log"),
             ]
         ),
 
@@ -39,9 +39,9 @@ let package = Package(
             name: "LicenseCLITests",
             dependencies: [
                 "LicenseCLI",
-                "LicenseCLICore"
+                "LicenseCLICore",
             ],
             exclude: ["Fixtures/"]
-        )
+        ),
     ]
 )

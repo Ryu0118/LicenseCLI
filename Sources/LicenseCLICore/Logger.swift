@@ -40,24 +40,22 @@ struct ColoredLogHandler: LogHandler {
         function: String,
         line: UInt
     ) {
-        let formattedMessage: String
-
-        switch level {
+        let formattedMessage = switch level {
         case .trace:
-            formattedMessage = "\(ANSIColor.gray.code)🔍 [TRACE] \(message)\(ANSIColor.reset.code)"
+            "\(ANSIColor.gray.code)🔍 [TRACE] \(message)\(ANSIColor.reset.code)"
         case .debug:
-            formattedMessage = "\(ANSIColor.cyan.code)🐛 [DEBUG] \(message)\(ANSIColor.reset.code)"
+            "\(ANSIColor.cyan.code)🐛 [DEBUG] \(message)\(ANSIColor.reset.code)"
         case .info:
             // For info level, the message should already contain the emoji, no fixed color
-            formattedMessage = "\(message)"
+            "\(message)"
         case .notice:
-            formattedMessage = "\(ANSIColor.blue.code)📢 [NOTICE] \(message)\(ANSIColor.reset.code)"
+            "\(ANSIColor.blue.code)📢 [NOTICE] \(message)\(ANSIColor.reset.code)"
         case .warning:
-            formattedMessage = "\(ANSIColor.yellow.code)⚠️ [WARNING] \(message)\(ANSIColor.reset.code)"
+            "\(ANSIColor.yellow.code)⚠️ [WARNING] \(message)\(ANSIColor.reset.code)"
         case .error:
-            formattedMessage = "\(ANSIColor.red.code)❌ [ERROR] \(message)\(ANSIColor.reset.code)"
+            "\(ANSIColor.red.code)❌ [ERROR] \(message)\(ANSIColor.reset.code)"
         case .critical:
-            formattedMessage = "\(ANSIColor.magenta.code)🔥 [CRITICAL] \(message)\(ANSIColor.reset.code)"
+            "\(ANSIColor.magenta.code)🔥 [CRITICAL] \(message)\(ANSIColor.reset.code)"
         }
 
         print(formattedMessage)
@@ -78,16 +76,16 @@ package enum ANSIColor {
 
     package var code: String {
         switch self {
-        case .black: return "\u{001B}[30m"
-        case .red: return "\u{001B}[31m"
-        case .green: return "\u{001B}[32m"
-        case .yellow: return "\u{001B}[33m"
-        case .blue: return "\u{001B}[34m"
-        case .magenta: return "\u{001B}[35m"
-        case .cyan: return "\u{001B}[36m"
-        case .white: return "\u{001B}[37m"
-        case .gray: return "\u{001B}[90m"
-        case .reset: return "\u{001B}[0m"
+        case .black: "\u{001B}[30m"
+        case .red: "\u{001B}[31m"
+        case .green: "\u{001B}[32m"
+        case .yellow: "\u{001B}[33m"
+        case .blue: "\u{001B}[34m"
+        case .magenta: "\u{001B}[35m"
+        case .cyan: "\u{001B}[36m"
+        case .white: "\u{001B}[37m"
+        case .gray: "\u{001B}[90m"
+        case .reset: "\u{001B}[0m"
         }
     }
 

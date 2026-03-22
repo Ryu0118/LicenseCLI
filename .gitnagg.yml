@@ -2,13 +2,23 @@ version: 1
 resolution: first-match
 
 rules:
-  - severity: warning
-    message: This diff is spreading out. Make a checkpoint commit soon.
+  - severity: error
+    message: Stop. This LicenseCLI diff is already too large for one commit. Split it before continuing.
     when:
       or:
         - metric: added
-          gte: 150
+          gte: 140
         - metric: deleted
-          gte: 200
+          gte: 80
         - metric: files
-          gte: 5
+          gte: 8
+  - severity: error
+    message: Commit now. Keep the next LicenseCLI step in a fresh commit.
+    when:
+      or:
+        - metric: added
+          gte: 60
+        - metric: deleted
+          gte: 30
+        - metric: files
+          gte: 4

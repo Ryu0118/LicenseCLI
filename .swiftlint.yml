@@ -1,6 +1,3 @@
-# SwiftLint configuration for ctxmv
-# https://realm.github.io/SwiftLint/rule-directory.html
-
 excluded:
   - .build
   - .swiftpm

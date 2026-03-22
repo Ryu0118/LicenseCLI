@@ -1,5 +1,3 @@
-# SwiftFormat configuration for ctxmv (Swift Package).
-
 --swiftversion 6.0
 --indent 4
 --indentcase false

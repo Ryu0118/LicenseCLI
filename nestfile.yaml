@@ -1,4 +1,3 @@
-# Local dev + CI SwiftLint (macOS): `make install-commands` / `./scripts/nest.sh bootstrap nestfile.yaml`.
 nestPath: ./.nest
 targets:
   - reference: nicklockwood/SwiftFormat

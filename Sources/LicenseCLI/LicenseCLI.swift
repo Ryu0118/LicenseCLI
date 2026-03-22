@@ -6,10 +6,10 @@ struct LicenseCLI: AsyncParsableCommand {
     @Argument(help: "Directories where Package.swift is located", completion: .directory)
     var projectDirectory: [String] = []
 
-    @Option(name: .long, parsing: .upToNextOption, help: "GitHub repository URLs (e.g., https://github.com/owner/repo)")
+    @Option(name: .long, parsing: .upToNextOption, help: "GitHub repository URLs (e.g., https://github.com/owner/repo or git@github.com:owner/repo.git)")
     var githubRepo: [String] = []
 
-    @Option(name: .long, parsing: .upToNextOption, help: "GitHub repository URLs with dependencies (e.g., https://github.com/owner/repo@1.0.0)")
+    @Option(name: .long, parsing: .upToNextOption, help: "GitHub repository URLs with dependencies (e.g., https://github.com/owner/repo@1.0.0 or git@github.com:owner/repo.git@1.0.0)")
     var packageDeps: [String] = []
 
     @Option(name: .long, help: "Cache directory for package dependencies clones (reuses existing clones if revision matches)", completion: .directory)

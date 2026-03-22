@@ -39,7 +39,6 @@ public struct SwiftPackageValidator {
             try validatePackageDepsURL(packageDepsURL)
         }
 
-        // Validate git is available if package-deps is used
         if !packageDependenciesURLs.isEmpty {
             try validateGitAvailability()
         }
@@ -48,17 +47,8 @@ public struct SwiftPackageValidator {
     }
 
     private func validateGitHubURL(_ urlString: String) throws {
-        guard let url = URL(string: urlString),
-              let host = url.host,
-              host == "github.com" || host == "www.github.com"
-        else {
+        guard GitHubRepo.parse(urlString: urlString) != nil else {
             logger.error("Invalid GitHub URL: \(urlString)")
-            throw SwiftPackageValidatorError.invalidGitHubURL(urlString)
-        }
-
-        let pathComponents = url.pathComponents.filter { $0 != "/" }
-        guard pathComponents.count >= 2 else {
-            logger.error("GitHub URL must contain owner and repository: \(urlString)")
             throw SwiftPackageValidatorError.invalidGitHubURL(urlString)
         }
 
@@ -66,7 +56,6 @@ public struct SwiftPackageValidator {
     }
 
     private func validatePackageDepsURL(_ urlString: String) throws {
-        // Parse the URL to validate it can be parsed as GitHubRepoWithVersion
         guard GitHubRepoWithVersion(urlString: urlString) != nil else {
             logger.error("Invalid package dependency URL: \(urlString)")
             throw SwiftPackageValidatorError.invalidPackageDepsURL(urlString)
@@ -139,9 +128,9 @@ public enum SwiftPackageValidatorError: LocalizedError {
         case .noInputProvided:
             "At least one package directory, GitHub repository URL, or package dependency URL must be provided"
         case let .invalidGitHubURL(url):
-            "Invalid GitHub URL: \(url). URL must be in format https://github.com/owner/repo"
+            "Invalid GitHub URL: \(url). URL must be in format https://github.com/owner/repo[@version] or git@github.com:owner/repo.git[@version]"
         case let .invalidPackageDepsURL(url):
-            "Invalid package dependency URL: \(url). URL must be in format https://github.com/owner/repo[@version]"
+            "Invalid package dependency URL: \(url). URL must be in format https://github.com/owner/repo[@version] or git@github.com:owner/repo.git[@version]"
         case .gitNotAvailable:
             "git command is not available. Please install git to use --package-deps option"
         }

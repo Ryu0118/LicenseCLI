@@ -9,6 +9,6 @@ targets:
     assetName: SwiftLintBinary.artifactbundle.zip
     checksum: 12befab676fc972ffde2ec295d016d53c3a85f64aabd9c7fee0032d681e307e9
   - reference: Ryu0118/gitnagg
-    version: 0.1.0
-    assetName: gitnagg-0.1.0.artifactbundle.zip
-    checksum: e2ae97f2a4670cce30ce70659890430eb3c3966f0b058775fe2c6cab1816fa5e
+    version: 0.2.0
+    assetName: gitnagg-0.2.0.artifactbundle.zip
+    checksum: a6525e3df2aece1fbadf2ebf556fb81154f9e5a1bc221ca176ba72884bffa47a

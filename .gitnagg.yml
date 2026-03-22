@@ -1,3 +1,14 @@
-added: 150
-deleted: 200
-files: 5
+version: 1
+resolution: first-match
+
+rules:
+  - severity: warning
+    message: This diff is spreading out. Make a checkpoint commit soon.
+    when:
+      or:
+        - metric: added
+          gte: 150
+        - metric: deleted
+          gte: 200
+        - metric: files
+          gte: 5

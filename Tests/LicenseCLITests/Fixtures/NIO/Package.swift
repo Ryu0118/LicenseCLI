@@ -9,10 +9,11 @@ let package = Package(
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "HasNIODependency",
-            targets: ["HasNIODependency"]),
+            targets: ["HasNIODependency"]
+        ),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-nio.git", exact: "2.83.0")
+        .package(url: "https://github.com/apple/swift-nio.git", exact: "2.83.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -20,7 +21,7 @@ let package = Package(
         .target(
             name: "HasNIODependency",
             dependencies: [
-                .product(name: "NIO", package: "swift-nio")
+                .product(name: "NIO", package: "swift-nio"),
             ]
         ),
         .testTarget(

@@ -16,7 +16,7 @@ struct DependenciesLoader {
 
         let dependencies = try jsonDecoder.decode(Dependencies.self, from: packageResolvedData)
         logger.info("📚 Loaded \(dependencies.pins.count) dependencies from Package.resolved")
-        logger.trace("Dependencies: \(dependencies.pins.map { $0.identity }.joined(separator: ", "))")
+        logger.trace("Dependencies: \(dependencies.pins.map(\.identity).joined(separator: ", "))")
 
         return dependencies
     }

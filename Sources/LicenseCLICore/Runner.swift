@@ -10,11 +10,11 @@ public struct Runner {
         jsonDecoder: JSONDecoder = .init(),
         urlSession: URLSession = .shared
     ) {
-        self.dependenciesLoader = DependenciesLoader(fileManager: fileManager, jsonDecoder: jsonDecoder)
-        self.licenseLoader = LicenseLoader(urlSession: urlSession)
-        self.packageDependenciesResolver = PackageDependenciesResolver(
+        dependenciesLoader = DependenciesLoader(fileManager: fileManager, jsonDecoder: jsonDecoder)
+        licenseLoader = LicenseLoader(urlSession: urlSession)
+        packageDependenciesResolver = PackageDependenciesResolver(
             fileManager: fileManager,
-            dependenciesLoader: self.dependenciesLoader
+            dependenciesLoader: dependenciesLoader
         )
     }
 
@@ -66,7 +66,7 @@ public struct Runner {
         logger.trace("Writing licenses to: \(outputURL.path)")
 
         try SourceWriter.write(
-            licenses: licenses.sorted(by: { $0.name < $1.name }),
+            licenses: licenses.sorted { $0.name < $1.name },
             outputURL: outputURL
         )
 
@@ -91,17 +91,17 @@ public struct Runner {
                     var allLicenses: [License] = []
 
                     // First, fetch the license for the main package itself
-                    if let mainPackageLicense = try await self.fetchMainPackageLicense(repoWithVersion: repoWithVersion) {
+                    if let mainPackageLicense = try await fetchMainPackageLicense(repoWithVersion: repoWithVersion) {
                         allLicenses.append(mainPackageLicense)
                         logger.trace("Fetched license for main package: \(repoWithVersion.repo.identity)")
                     }
 
                     // Then resolve and fetch licenses for all dependencies
-                    if let dependencies = try self.packageDependenciesResolver.resolve(
+                    if let dependencies = try packageDependenciesResolver.resolve(
                         repoWithVersion: repoWithVersion,
                         cacheDirectory: cacheDirectory
                     ) {
-                        let dependencyLicenses = try await self.licenseLoader.load(for: dependencies)
+                        let dependencyLicenses = try await licenseLoader.load(for: dependencies)
                         allLicenses.append(contentsOf: dependencyLicenses)
                         logger.info("📚 Fetched \(dependencyLicenses.count) dependency licenses for \(repoWithVersion.repo.identity)")
                     } else {
@@ -121,10 +121,11 @@ public struct Runner {
     private func fetchMainPackageLicense(repoWithVersion: GitHubRepoWithVersion) async throws -> License? {
         let repo = repoWithVersion.repo
         let version = repoWithVersion.version.gitReference
-        
+
         guard let licenseURL = repo.licenseURL(for: version),
               let licenseTxtURL = repo.licenseTxtURL(for: version),
-              let licenseCapitalTxtURL = repo.licenseCapitalTxtURL(for: version) else {
+              let licenseCapitalTxtURL = repo.licenseCapitalTxtURL(for: version)
+        else {
             return nil
         }
 
@@ -147,7 +148,7 @@ public enum RunnerError: LocalizedError {
         switch self {
         case .cannotReadPackageResolved:
             "Package.resolved could not be loaded"
-        case .cannotFindLicenseURL(let location):
+        case let .cannotFindLicenseURL(location):
             "License URL could not be found: (\(location))"
         }
     }

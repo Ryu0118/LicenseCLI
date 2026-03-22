@@ -8,14 +8,14 @@ struct GitHubRepoWithVersion {
         case branch(String)
         case tag(String)
         case revision(String)
-        case head  // Default if no version specified
+        case head // Default if no version specified
 
         var gitReference: String {
             switch self {
-            case .branch(let name), .tag(let name), .revision(let name):
-                return name
+            case let .branch(name), let .tag(name), let .revision(name):
+                name
             case .head:
-                return "HEAD"
+                "HEAD"
             }
         }
     }
@@ -48,9 +48,9 @@ struct GitHubRepoWithVersion {
             // Otherwise, could be branch name or revision
             // For simplicity, we'll treat everything as a git reference
             // Git will handle it appropriately (branch, tag, or commit SHA)
-            self.version = .tag(versionString)
+            version = .tag(versionString)
         } else {
-            self.version = .head
+            version = .head
         }
     }
 

@@ -37,7 +37,7 @@ struct GitHubRepo {
         let pathComponents = url.pathComponents.filter { $0 != "/" }
         guard pathComponents.count >= 2 else { return nil }
 
-        self.owner = pathComponents[0]
-        self.name = pathComponents[1].replacingOccurrences(of: ".git", with: "")
+        owner = pathComponents[0]
+        name = pathComponents[1].replacingOccurrences(of: ".git", with: "")
     }
 }

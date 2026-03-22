@@ -1,0 +1,5 @@
+# gitnagg - commit threshold configuration
+# Nags when uncommitted changes exceed these limits
+added: 150
+deleted: 200
+files: 5

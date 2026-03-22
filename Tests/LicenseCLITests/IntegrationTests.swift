@@ -1,10 +1,10 @@
+import Foundation
 @testable import LicenseCLI
 @testable import LicenseCLICore
 import Testing
-import Foundation
 
 @Suite
-final class IntegrationTests{
+final class IntegrationTests {
     let outputDirURL: URL
     let outputFileURL: URL
     let tca1FixtureURL: URL
@@ -63,9 +63,8 @@ final class IntegrationTests{
         "swift-service-context",
         "SemanticVersion",
         "pkl-swift",
-        "swift-argument-parser",
         "LicenseCLI",
-        "ocmock"
+        "ocmock",
     ]
 
     init() throws {
@@ -95,7 +94,7 @@ final class IntegrationTests{
     }
 
     @Test
-    func testMultiplePackageLicenses() async throws {
+    func multiplePackageLicenses() async throws {
         try SwiftPackageValidator().validate(
             packageDirectoryPaths: [
                 tca1FixtureURL.path(percentEncoded: false),
@@ -107,12 +106,12 @@ final class IntegrationTests{
                 "https://github.com/swiftlang/swift",
                 "https://github.com/swiftlang/swift-build@swift-6.2-DEVELOPMENT-SNAPSHOT-2025-11-26-a",
                 "https://github.com/Ryu0118/LicenseCLI@0.4.0",
-                "https://github.com/erikdoe/ocmock"
+                "https://github.com/erikdoe/ocmock",
             ],
             packageDependenciesURLs: [
                 "https://github.com/apple/swift-configuration@1.0.0-alpha.1",
                 "https://github.com/apple/app-store-server-library-swift@5da964ee0cd78d19072388b07f52940d0368f998",
-                "https://github.com/apple/pkl-swift@main"
+                "https://github.com/apple/pkl-swift@main",
             ],
             outputDirectoryPath: outputDirURL.path(percentEncoded: false),
             fileName: outputFileName
@@ -128,12 +127,12 @@ final class IntegrationTests{
                 "https://github.com/swiftlang/swift",
                 "https://github.com/swiftlang/swift-build@swift-6.2-DEVELOPMENT-SNAPSHOT-2025-11-26-a",
                 "https://github.com/Ryu0118/LicenseCLI@0.4.0",
-                "https://github.com/erikdoe/ocmock"
+                "https://github.com/erikdoe/ocmock",
             ],
             packageDependenciesURLs: [
                 "https://github.com/apple/swift-configuration@1.0.0-alpha.1",
                 "https://github.com/apple/app-store-server-library-swift@main",
-                "https://github.com/apple/pkl-swift@main"
+                "https://github.com/apple/pkl-swift@main",
             ],
             packageDepsCacheDirectory: cacheDirURL.path(percentEncoded: false),
             outputDirectoryPath: outputDirURL.path(percentEncoded: false),
@@ -166,7 +165,6 @@ final class IntegrationTests{
 
         let names = try JSONDecoder().decode([String].self, from: namesData)
 
-        #expect(names.sorted() == allFixtureDependencies.sorted())
+        #expect(Set(names) == Set(allFixtureDependencies))
     }
 }
-

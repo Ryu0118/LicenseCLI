@@ -9,13 +9,13 @@ enum GitOperationsError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .gitNotAvailable:
-            return "git command is not available. Please install git."
-        case .cloneFailed(let message):
-            return "Failed to clone repository: \(message)"
-        case .checkoutFailed(let message):
-            return "Failed to checkout version: \(message)"
-        case .commandFailed(let message):
-            return "Git command failed: \(message)"
+            "git command is not available. Please install git."
+        case let .cloneFailed(message):
+            "Failed to clone repository: \(message)"
+        case let .checkoutFailed(message):
+            "Failed to checkout version: \(message)"
+        case let .commandFailed(message):
+            "Git command failed: \(message)"
         }
     }
 }
@@ -42,7 +42,7 @@ enum GitOperations {
         var arguments = ["clone"]
 
         // If a specific reference is provided and it's not HEAD, use --branch
-        if let reference = reference, reference != "HEAD" {
+        if let reference, reference != "HEAD" {
             arguments.append(contentsOf: ["--branch", reference])
         }
 

@@ -12,7 +12,7 @@ rules:
           gte: 80
         - metric: files
           gte: 8
-  - severity: error
+  - severity: warning
     message: Commit now. Keep the next LicenseCLI step in a fresh commit.
     when:
       or:

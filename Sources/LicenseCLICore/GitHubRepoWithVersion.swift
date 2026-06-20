@@ -4,6 +4,11 @@ struct GitHubRepoWithVersion {
     let repo: GitHubRepo
     let version: Version
 
+    init(repo: GitHubRepo, version: Version) {
+        self.repo = repo
+        self.version = version
+    }
+
     enum Version: Equatable {
         case branch(String)
         case tag(String)

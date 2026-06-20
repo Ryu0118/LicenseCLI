@@ -67,4 +67,41 @@ final class CacheDirectoryTests {
         let remaining = try fileManager.contentsOfDirectory(atPath: cache.rootURL().path)
         #expect(remaining.isEmpty)
     }
+
+    @Test
+    func entryURLKeysOnOwnerNameAndVersion() throws {
+        let repo = GitHubRepoWithVersion(
+            repo: GitHubRepo(owner: "apple", name: "swift-nio"),
+            version: .tag("2.0.0")
+        )
+
+        let entry = try cache.entryURL(for: repo)
+
+        #expect(entry.lastPathComponent == "apple-swift-nio@2.0.0")
+        #expect(try entry.deletingLastPathComponent() == (cache.rootURL()))
+    }
+
+    /// Adversarial inputs must stay confined to the cache root: the security review's
+    /// no-path-traversal conclusion rests entirely on `entryURL`'s sanitization, so this
+    /// turns that claim into a regression test.
+    @Test(arguments: [
+        "../../etc",
+        "foo/../bar",
+        "feature/branch",
+        "git@host:x",
+    ])
+    func entryURLConfinesPathTraversalAttempts(version: String) throws {
+        let repo = GitHubRepoWithVersion(
+            repo: GitHubRepo(owner: "apple", name: "swift-nio"),
+            version: .tag(version)
+        )
+
+        let entry = try cache.entryURL(for: repo)
+        let root = try cache.rootURL()
+
+        // The entry is a single literal component directly under the root — separators
+        // are sanitized away, so `..` can never land at a path boundary.
+        #expect(!entry.lastPathComponent.contains("/"))
+        #expect(entry.standardizedFileURL.path.hasPrefix(root.standardizedFileURL.path))
+    }
 }

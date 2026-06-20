@@ -3,7 +3,6 @@ import Foundation
 enum PackageDependenciesResolverError: LocalizedError {
     case invalidURL(String)
     case packageResolveFailed(String)
-    case temporaryDirectoryCreationFailed
     case noPackageResolvedGenerated
 
     var errorDescription: String? {
@@ -12,8 +11,6 @@ enum PackageDependenciesResolverError: LocalizedError {
             "Invalid package URL: \(url)"
         case let .packageResolveFailed(message):
             "Failed to resolve package: \(message)"
-        case .temporaryDirectoryCreationFailed:
-            "Failed to create temporary directory"
         case .noPackageResolvedGenerated:
             "Package.resolved was not generated (package may have no dependencies)"
         }
@@ -23,67 +20,56 @@ enum PackageDependenciesResolverError: LocalizedError {
 struct PackageDependenciesResolver {
     let fileManager: FileManager
     let dependenciesLoader: DependenciesLoader
+    let cacheDirectory: CacheDirectory
 
     init(
         fileManager: FileManager = .default,
         dependenciesLoader: DependenciesLoader = DependenciesLoader(
             fileManager: .default,
             jsonDecoder: JSONDecoder()
-        )
+        ),
+        cacheDirectory: CacheDirectory = CacheDirectory()
     ) {
         self.fileManager = fileManager
         self.dependenciesLoader = dependenciesLoader
+        self.cacheDirectory = cacheDirectory
     }
 
-    /// Resolve dependencies for a package from a GitHub repository
-    /// Returns the dependencies from Package.resolved, or nil if no dependencies exist
-    func resolve(repoWithVersion: GitHubRepoWithVersion, cacheDirectory: String?) throws -> Dependencies? {
+    /// Resolve dependencies for a package from a GitHub repository.
+    ///
+    /// Clones are cached in the global cache directory and shared across projects,
+    /// keyed by `owner-name@version`. Returns the dependencies from Package.resolved,
+    /// or nil if no dependencies exist.
+    func resolve(repoWithVersion: GitHubRepoWithVersion) throws -> Dependencies? {
         logger.info("🔍 Resolving dependencies for \(repoWithVersion.repo.identity)")
 
+        let repoCacheDir = try cacheDirectory.entryURL(for: repoWithVersion)
+
         let workDirectory: URL
-        let shouldCleanup: Bool
-
-        if let cacheDir = cacheDirectory {
-            // Use cache directory
-            let cacheURL = URL(fileURLWithPath: cacheDir)
-            let repoCacheDir = getCacheDirectory(for: repoWithVersion, in: cacheURL)
-
-            // Check if cached directory exists and has the correct revision
-            if let existingDir = try getExistingCacheDirectory(repoWithVersion: repoWithVersion, cacheDir: repoCacheDir) {
-                logger.info("♻️ Using cached clone at \(existingDir.path)")
-                workDirectory = existingDir
-                shouldCleanup = false
-            } else {
-                // Remove existing directory if it exists but has wrong revision
-                if fileManager.fileExists(atPath: repoCacheDir.path) {
-                    logger.info("🗑️ Removing outdated cache directory: \(repoCacheDir.path)")
-                    try? fileManager.removeItem(at: repoCacheDir)
-                }
-
-                // Create cache directory and clone
-                try fileManager.createDirectory(
-                    at: repoCacheDir,
-                    withIntermediateDirectories: true,
-                    attributes: nil
-                )
-                logger.info("📥 Cloning to cache directory: \(repoCacheDir.path)")
-                try cloneRepository(repoWithVersion: repoWithVersion, to: repoCacheDir)
-                workDirectory = repoCacheDir
-                shouldCleanup = false
-            }
+        // Check if cached directory exists and has the correct revision
+        if let existingDir = try getExistingCacheDirectory(repoWithVersion: repoWithVersion, cacheDir: repoCacheDir) {
+            logger.info("♻️ Using cached clone at \(existingDir.path)")
+            workDirectory = existingDir
         } else {
-            // Use temporary directory (original behavior)
-            workDirectory = try createTemporaryDirectory()
-            shouldCleanup = true
-            logger.trace("Created temporary directory: \(workDirectory.path)")
-            try cloneRepository(repoWithVersion: repoWithVersion, to: workDirectory)
+            // Remove existing directory if it exists but has wrong revision
+            if fileManager.fileExists(atPath: repoCacheDir.path) {
+                logger.info("🗑️ Removing outdated cache directory: \(repoCacheDir.path)")
+                try? fileManager.removeItem(at: repoCacheDir)
+            }
+
+            // Create cache directory and clone
+            try fileManager.createDirectory(
+                at: repoCacheDir,
+                withIntermediateDirectories: true,
+                attributes: nil
+            )
+            logger.info("📥 Cloning to cache directory: \(repoCacheDir.path)")
+            try cloneRepository(repoWithVersion: repoWithVersion, to: repoCacheDir)
+            workDirectory = repoCacheDir
         }
 
-        defer {
-            if shouldCleanup {
-                cleanup(directory: workDirectory)
-            }
-        }
+        // Mark this entry as recently used so the TTL collector keeps it around.
+        cacheDirectory.touch(workDirectory)
 
         // Run swift package resolve
         let packageResolvedExists = try runSwiftPackageResolve(at: workDirectory)
@@ -96,23 +82,6 @@ struct PackageDependenciesResolver {
 
         // Load and return dependencies
         return try dependenciesLoader.load(packageDirectoryPath: workDirectory.path)
-    }
-
-    private func createTemporaryDirectory() throws -> URL {
-        let tempDirectory = fileManager.temporaryDirectory
-            .appendingPathComponent("licensecli-\(UUID().uuidString)")
-
-        do {
-            try fileManager.createDirectory(
-                at: tempDirectory,
-                withIntermediateDirectories: true,
-                attributes: nil
-            )
-            return tempDirectory
-        } catch {
-            logger.error("Failed to create temporary directory: \(error)")
-            throw PackageDependenciesResolverError.temporaryDirectoryCreationFailed
-        }
     }
 
     private func cloneRepository(repoWithVersion: GitHubRepoWithVersion, to destination: URL) throws {
@@ -165,26 +134,6 @@ struct PackageDependenciesResolver {
             logger.error("Failed to resolve package: \(error)")
             throw PackageDependenciesResolverError.packageResolveFailed(error.localizedDescription)
         }
-    }
-
-    private func cleanup(directory: URL) {
-        do {
-            try fileManager.removeItem(at: directory)
-            logger.trace("Cleaned up temporary directory: \(directory.path)")
-        } catch {
-            logger.warning("Failed to cleanup temporary directory: \(error)")
-        }
-    }
-
-    /// Get cache directory path for a specific repository and version
-    private func getCacheDirectory(for repoWithVersion: GitHubRepoWithVersion, in cacheBaseURL: URL) -> URL {
-        let repo = repoWithVersion.repo
-        let version = repoWithVersion.version.gitReference
-        // Sanitize directory name: replace / with - and @ with @
-        let dirName = "\(repo.owner)-\(repo.name)@\(version)"
-            .replacingOccurrences(of: "/", with: "-")
-            .replacingOccurrences(of: ":", with: "-")
-        return cacheBaseURL.appendingPathComponent(dirName)
     }
 
     /// Check if an existing cache directory exists and can be used for the target revision

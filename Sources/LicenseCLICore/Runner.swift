@@ -22,11 +22,14 @@ public struct Runner {
         packageDirectoryPaths: [String],
         githubRepoURLs: [String],
         packageDependenciesURLs: [String],
-        packageDepsCacheDirectory: String?,
         outputDirectoryPath: String,
         fileName: String
     ) async throws {
         logger.info("\(ANSIColor.colored("🚀 Starting license generation", color: .cyan))")
+
+        // Drop cache entries unused beyond the TTL before doing any work.
+        CacheDirectory().collectGarbage()
+
         logger.trace("Package directories: \(packageDirectoryPaths)")
         logger.trace("GitHub repository URLs: \(githubRepoURLs)")
         logger.trace("Package dependency URLs: \(packageDependenciesURLs)")
@@ -51,10 +54,7 @@ public struct Runner {
         licenses.formUnion(githubLicenses)
 
         // Process package dependencies (--package-deps option)
-        let packageDepsLicenses = try await processPackageDependencies(
-            packageDependenciesURLs,
-            cacheDirectory: packageDepsCacheDirectory
-        )
+        let packageDepsLicenses = try await processPackageDependencies(packageDependenciesURLs)
         licenses.formUnion(packageDepsLicenses)
 
         logger.info("📦 Loaded \(licenses.count) unique licenses")
@@ -73,7 +73,7 @@ public struct Runner {
         logger.info("\(ANSIColor.colored("✅ Successfully generated license file at \(outputURL.path)", color: .green))")
     }
 
-    private func processPackageDependencies(_ packageDependenciesURLs: [String], cacheDirectory: String?) async throws -> Set<License> {
+    private func processPackageDependencies(_ packageDependenciesURLs: [String]) async throws -> Set<License> {
         guard !packageDependenciesURLs.isEmpty else { return [] }
 
         logger.info("🔧 Processing \(packageDependenciesURLs.count) package dependency URL(s)")
@@ -98,8 +98,7 @@ public struct Runner {
 
                     // Then resolve and fetch licenses for all dependencies
                     if let dependencies = try packageDependenciesResolver.resolve(
-                        repoWithVersion: repoWithVersion,
-                        cacheDirectory: cacheDirectory
+                        repoWithVersion: repoWithVersion
                     ) {
                         let dependencyLicenses = try await licenseLoader.load(for: dependencies)
                         allLicenses.append(contentsOf: dependencyLicenses)

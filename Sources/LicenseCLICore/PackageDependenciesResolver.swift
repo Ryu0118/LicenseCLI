@@ -3,6 +3,7 @@ import Foundation
 enum PackageDependenciesResolverError: LocalizedError {
     case invalidURL(String)
     case packageResolveFailed(String)
+    case temporaryDirectoryCreationFailed
     case noPackageResolvedGenerated
 
     var errorDescription: String? {
@@ -11,6 +12,8 @@ enum PackageDependenciesResolverError: LocalizedError {
             "Invalid package URL: \(url)"
         case let .packageResolveFailed(message):
             "Failed to resolve package: \(message)"
+        case .temporaryDirectoryCreationFailed:
+            "Failed to create temporary directory"
         case .noPackageResolvedGenerated:
             "Package.resolved was not generated (package may have no dependencies)"
         }
@@ -20,7 +23,10 @@ enum PackageDependenciesResolverError: LocalizedError {
 struct PackageDependenciesResolver {
     let fileManager: FileManager
     let dependenciesLoader: DependenciesLoader
-    let cacheDirectory: CacheDirectory
+
+    /// The cache to use, or `nil` to clone into a temporary directory discarded after
+    /// the run (`--no-cache`).
+    let cacheDirectory: CacheDirectory?
 
     init(
         fileManager: FileManager = .default,
@@ -28,7 +34,7 @@ struct PackageDependenciesResolver {
             fileManager: .default,
             jsonDecoder: JSONDecoder()
         ),
-        cacheDirectory: CacheDirectory = CacheDirectory()
+        cacheDirectory: CacheDirectory? = CacheDirectory()
     ) {
         self.fileManager = fileManager
         self.dependenciesLoader = dependenciesLoader
@@ -37,12 +43,47 @@ struct PackageDependenciesResolver {
 
     /// Resolve dependencies for a package from a GitHub repository.
     ///
-    /// Clones are cached in the global cache directory and shared across projects,
-    /// keyed by `owner-name@version`. Returns the dependencies from Package.resolved,
-    /// or nil if no dependencies exist.
+    /// When a cache is configured, clones are reused across runs keyed by
+    /// `owner-name@version`; otherwise the clone is made in a temporary directory and
+    /// discarded. Returns the dependencies from Package.resolved, or nil if none exist.
     func resolve(repoWithVersion: GitHubRepoWithVersion) throws -> Dependencies? {
         logger.info("🔍 Resolving dependencies for \(repoWithVersion.repo.identity)")
 
+        let workDirectory: URL
+        let shouldCleanup: Bool
+
+        if let cacheDirectory {
+            workDirectory = try cachedClone(repoWithVersion: repoWithVersion, in: cacheDirectory)
+            shouldCleanup = false
+        } else {
+            workDirectory = try createTemporaryDirectory()
+            shouldCleanup = true
+            logger.trace("Created temporary directory: \(workDirectory.path)")
+            try cloneRepository(repoWithVersion: repoWithVersion, to: workDirectory)
+        }
+
+        defer {
+            if shouldCleanup {
+                cleanup(directory: workDirectory)
+            }
+        }
+
+        // Run swift package resolve
+        let packageResolvedExists = try runSwiftPackageResolve(at: workDirectory)
+
+        // If Package.resolved was not generated, the package has no dependencies
+        guard packageResolvedExists else {
+            logger.info("📦 Package has no dependencies")
+            return nil
+        }
+
+        // Load and return dependencies
+        return try dependenciesLoader.load(packageDirectoryPath: workDirectory.path)
+    }
+
+    /// Returns a ready-to-use clone in the cache, reusing an existing one when its
+    /// revision matches and re-cloning otherwise.
+    private func cachedClone(repoWithVersion: GitHubRepoWithVersion, in cacheDirectory: CacheDirectory) throws -> URL {
         let repoCacheDir = try cacheDirectory.entryURL(for: repoWithVersion)
 
         let workDirectory: URL
@@ -70,18 +111,33 @@ struct PackageDependenciesResolver {
 
         // Mark this entry as recently used so the TTL collector keeps it around.
         cacheDirectory.touch(workDirectory)
+        return workDirectory
+    }
 
-        // Run swift package resolve
-        let packageResolvedExists = try runSwiftPackageResolve(at: workDirectory)
+    private func createTemporaryDirectory() throws -> URL {
+        let tempDirectory = fileManager.temporaryDirectory
+            .appendingPathComponent("licensecli-\(UUID().uuidString)")
 
-        // If Package.resolved was not generated, the package has no dependencies
-        guard packageResolvedExists else {
-            logger.info("📦 Package has no dependencies")
-            return nil
+        do {
+            try fileManager.createDirectory(
+                at: tempDirectory,
+                withIntermediateDirectories: true,
+                attributes: nil
+            )
+            return tempDirectory
+        } catch {
+            logger.error("Failed to create temporary directory: \(error)")
+            throw PackageDependenciesResolverError.temporaryDirectoryCreationFailed
         }
+    }
 
-        // Load and return dependencies
-        return try dependenciesLoader.load(packageDirectoryPath: workDirectory.path)
+    private func cleanup(directory: URL) {
+        do {
+            try fileManager.removeItem(at: directory)
+            logger.trace("Cleaned up temporary directory: \(directory.path)")
+        } catch {
+            logger.warning("Failed to cleanup temporary directory: \(error)")
+        }
     }
 
     private func cloneRepository(repoWithVersion: GitHubRepoWithVersion, to destination: URL) throws {

@@ -1,13 +1,40 @@
 import Foundation
 
-/// Manages the global cache directory for package dependency clones.
+/// Where package dependency clones should be cached for a run.
+public enum CacheLocation: Equatable {
+    /// The global, OS-managed cache (the default).
+    case global
+    /// A user-supplied directory used directly (`--package-deps-cache-dir`).
+    case custom(path: String)
+    /// No caching; clones go to a temporary directory discarded after the run (`--no-cache`).
+    case disabled
+
+    /// The cache to use, or `nil` when caching is disabled.
+    public func cacheDirectory(fileManager: FileManager = .default) -> CacheDirectory? {
+        switch self {
+        case .global:
+            CacheDirectory(fileManager: fileManager)
+        case let .custom(path):
+            CacheDirectory(customPath: path, fileManager: fileManager)
+        case .disabled:
+            nil
+        }
+    }
+}
+
+/// Manages a cache directory for package dependency clones.
 ///
-/// Clones are stored in the OS cache directory, keyed only by `owner-name@version`
-/// (not by project path), so the same library at the same version is shared across
-/// all projects — similar to a pnpm-style global store.
+/// Clones are keyed only by `owner-name@version` (not by project path), so the same
+/// library at the same version is shared across runs — similar to a pnpm-style store.
 ///
-/// On macOS this resolves to `~/Library/Caches/LicenseCLI`, and on Linux to
-/// `~/.cache/LicenseCLI` (XDG), via `FileManager`'s `.cachesDirectory`.
+/// Two layouts exist:
+/// - **global** (the default): the OS cache directory with a `LicenseCLI` subdirectory
+///   appended — `~/Library/Caches/LicenseCLI` on macOS, `~/.cache/LicenseCLI` on Linux
+///   (via `FileManager`'s `.cachesDirectory`). Eligible for automatic TTL garbage
+///   collection.
+/// - **custom** (`--package-deps-cache-dir`): the user-supplied path used directly,
+///   with no subdirectory appended and no TTL garbage collection, preserving the prior
+///   behavior of that option.
 public struct CacheDirectory {
     /// Number of days a cached clone may remain unused before it is eligible for
     /// automatic time-to-live (TTL) garbage collection.
@@ -15,29 +42,45 @@ public struct CacheDirectory {
 
     let fileManager: FileManager
 
-    /// Resolves the base directory that `LicenseCLI` is appended to. Defaults to the
-    /// OS caches directory; overridable for testing.
-    private let baseDirectoryURL: () throws -> URL
+    /// Whether this is the global, OS-managed cache. Only the global cache is subject
+    /// to automatic TTL garbage collection.
+    let isGlobal: Bool
 
+    /// Resolves the root cache directory (already including any `LicenseCLI` subdir).
+    /// Overridable for testing.
+    private let resolveRootURL: () throws -> URL
+
+    /// The global OS cache (`<OS caches>/LicenseCLI`).
     public init(fileManager: FileManager = .default) {
-        self.init(fileManager: fileManager) {
+        self.init(fileManager: fileManager, isGlobal: true) {
             try fileManager.url(
                 for: .cachesDirectory,
                 in: .userDomainMask,
                 appropriateFor: nil,
                 create: true
             )
+            .appendingPathComponent("LicenseCLI")
         }
     }
 
-    init(fileManager: FileManager, baseDirectoryURL: @escaping () throws -> URL) {
-        self.fileManager = fileManager
-        self.baseDirectoryURL = baseDirectoryURL
+    /// A custom cache at `path`, used directly without a `LicenseCLI` subdirectory and
+    /// exempt from TTL garbage collection (preserving the prior `--package-deps-cache-dir`
+    /// behavior).
+    public init(customPath: String, fileManager: FileManager = .default) {
+        self.init(fileManager: fileManager, isGlobal: false) {
+            URL(fileURLWithPath: customPath)
+        }
     }
 
-    /// The root cache directory (`<base>/LicenseCLI`), created if needed.
+    init(fileManager: FileManager, isGlobal: Bool, resolveRootURL: @escaping () throws -> URL) {
+        self.fileManager = fileManager
+        self.isGlobal = isGlobal
+        self.resolveRootURL = resolveRootURL
+    }
+
+    /// The root cache directory, created if needed.
     func rootURL() throws -> URL {
-        let rootURL = try baseDirectoryURL().appendingPathComponent("LicenseCLI")
+        let rootURL = try resolveRootURL()
         // `withIntermediateDirectories: true` is idempotent and does not throw if it exists.
         try fileManager.createDirectory(at: rootURL, withIntermediateDirectories: true)
         return rootURL
@@ -67,9 +110,11 @@ public struct CacheDirectory {
 
     /// Removes cache entries whose last use is older than `timeToLiveDays`.
     ///
+    /// Only applies to the global cache; a custom cache directory is left untouched.
     /// Called automatically on each run. Failures are logged and ignored — GC must
     /// never break a license-generation run.
     func collectGarbage() {
+        guard isGlobal else { return }
         guard let rootURL = try? rootURL() else { return }
 
         let cutoff = Date(timeIntervalSinceNow: -Double(Self.timeToLiveDays) * 24 * 60 * 60)

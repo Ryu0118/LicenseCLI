@@ -12,7 +12,8 @@ final class CacheDirectoryTests {
         baseURL = fileManager.temporaryDirectory
             .appendingPathComponent("licensecli-cache-tests-\(UUID().uuidString)")
         try fileManager.createDirectory(at: baseURL, withIntermediateDirectories: true)
-        cache = CacheDirectory(fileManager: fileManager) { [baseURL] in baseURL }
+        // Treat the temp dir as a global cache root so TTL GC applies in tests.
+        cache = CacheDirectory(fileManager: fileManager, isGlobal: true) { [baseURL] in baseURL }
     }
 
     deinit {
@@ -29,9 +30,8 @@ final class CacheDirectoryTests {
     }
 
     @Test
-    func rootURLIsCreatedUnderBase() throws {
+    func rootURLIsCreated() throws {
         let root = try cache.rootURL()
-        #expect(root.lastPathComponent == "LicenseCLI")
         #expect(fileManager.fileExists(atPath: root.path))
     }
 
@@ -78,7 +78,7 @@ final class CacheDirectoryTests {
         let entry = try cache.entryURL(for: repo)
 
         #expect(entry.lastPathComponent == "apple-swift-nio@2.0.0")
-        #expect(try entry.deletingLastPathComponent() == (cache.rootURL()))
+        #expect(try entry.deletingLastPathComponent().standardizedFileURL == (cache.rootURL().standardizedFileURL))
     }
 
     /// Adversarial inputs must stay confined to the cache root: the security review's
@@ -103,5 +103,34 @@ final class CacheDirectoryTests {
         // are sanitized away, so `..` can never land at a path boundary.
         #expect(!entry.lastPathComponent.contains("/"))
         #expect(entry.standardizedFileURL.path.hasPrefix(root.standardizedFileURL.path))
+    }
+
+    @Test
+    func customCacheUsesPathDirectlyWithoutSubdirectory() throws {
+        let customRoot = baseURL.appendingPathComponent("custom-\(UUID().uuidString)")
+        let custom = CacheDirectory(customPath: customRoot.path, fileManager: fileManager)
+
+        let root = try custom.rootURL()
+
+        // The user-supplied path is used directly — no "LicenseCLI" subdirectory.
+        #expect(root.standardizedFileURL.path == customRoot.standardizedFileURL.path)
+        #expect(root.lastPathComponent != "LicenseCLI")
+    }
+
+    @Test
+    func customCacheIsExemptFromGarbageCollection() throws {
+        let customRoot = baseURL.appendingPathComponent("custom-\(UUID().uuidString)")
+        let custom = CacheDirectory(customPath: customRoot.path, fileManager: fileManager)
+        let root = try custom.rootURL()
+
+        let stale = root.appendingPathComponent("stale@1.0.0")
+        try fileManager.createDirectory(at: stale, withIntermediateDirectories: true)
+        let oldDate = Date(timeIntervalSinceNow: -Double(CacheDirectory.timeToLiveDays + 10) * 24 * 60 * 60)
+        try fileManager.setAttributes([.modificationDate: oldDate], ofItemAtPath: stale.path)
+
+        custom.collectGarbage()
+
+        // A custom cache is never pruned, even when entries are well past the TTL.
+        #expect(fileManager.fileExists(atPath: stale.path))
     }
 }

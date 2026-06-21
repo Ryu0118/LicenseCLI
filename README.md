@@ -36,7 +36,7 @@ OPTIONS:
   --package-deps <package-deps>
                           GitHub repository URLs with dependencies (e.g., https://github.com/owner/repo@1.0.0)
   --package-deps-cache-dir <package-deps-cache-dir>
-                          Use this directory to cache package dependency clones instead of the global cache (no automatic pruning)
+                          Cache package dependency clones in this directory instead of the global cache (no automatic pruning)
   --no-cache              Disable caching; clone package dependencies into a temporary directory discarded after the run
   -o, --output-directory <output-directory>
                           Output directory
